@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "WeldForge Supply Co."
+version = "1.0.0"
+id = "artifacts/weld-supply-store"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22689
+
+[services.development]
+run = "pnpm --filter @workspace/weld-supply-store run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/weld-supply-store", "run", "build" ]
+publicDir = "artifacts/weld-supply-store/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22689"
+BASE_PATH = "/"

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/admin/"
+title = "FabShop Admin"
+version = "1.0.0"
+id = "artifacts/fabshop-admin"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/admin/" ]
+localPort = 20227
+
+[services.development]
+run = "pnpm --filter @workspace/fabshop-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fabshop-admin", "run", "build" ]
+publicDir = "artifacts/fabshop-admin/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20227"
+BASE_PATH = "/admin/"
