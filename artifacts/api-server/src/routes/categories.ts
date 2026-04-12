@@ -14,7 +14,7 @@ router.get("/categories", async (req, res) => {
         slug: categoriesTable.slug,
         description: categoriesTable.description,
         imageUrl: categoriesTable.imageUrl,
-        productCount: sql<number>`cast(count(${productsTable.id}) as int)`,
+        productCount: sql<number>`cast(count(${productsTable.id}) as unsigned)`,
       })
       .from(categoriesTable)
       .leftJoin(productsTable, eq(productsTable.categoryId, categoriesTable.id))
@@ -29,7 +29,9 @@ router.get("/categories", async (req, res) => {
 router.post("/categories", async (req, res) => {
   try {
     const body = CreateCategoryBody.parse(req.body);
-    const [cat] = await db.insert(categoriesTable).values(body).returning();
+    const result = await db.insert(categoriesTable).values(body);
+    const insertId = Number((result[0] as any).insertId);
+    const [cat] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, insertId));
     if (!cat) return res.status(500).json({ error: "Insert failed" });
     res.status(201).json({ ...cat, productCount: 0 });
   } catch (err) {
@@ -48,7 +50,7 @@ router.get("/categories/:id", async (req, res) => {
         slug: categoriesTable.slug,
         description: categoriesTable.description,
         imageUrl: categoriesTable.imageUrl,
-        productCount: sql<number>`cast(count(${productsTable.id}) as int)`,
+        productCount: sql<number>`cast(count(${productsTable.id}) as unsigned)`,
       })
       .from(categoriesTable)
       .leftJoin(productsTable, eq(productsTable.categoryId, categoriesTable.id))
@@ -66,7 +68,8 @@ router.put("/categories/:id", async (req, res) => {
   try {
     const { id } = GetCategoryParams.parse({ id: Number(req.params.id) });
     const body = CreateCategoryBody.parse(req.body);
-    const [row] = await db.update(categoriesTable).set(body).where(eq(categoriesTable.id, id)).returning();
+    await db.update(categoriesTable).set(body).where(eq(categoriesTable.id, id));
+    const [row] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, id));
     if (!row) return res.status(404).json({ error: "Not found" });
     res.json({ ...row, productCount: 0 });
   } catch (err) {

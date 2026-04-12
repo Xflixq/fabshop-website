@@ -66,7 +66,9 @@ router.get("/products", async (req, res) => {
 router.post("/products", async (req, res) => {
   try {
     const body = CreateProductBody.parse(req.body);
-    const [product] = await db.insert(productsTable).values(body).returning();
+    const result = await db.insert(productsTable).values(body);
+    const insertId = Number((result[0] as any).insertId);
+    const [product] = await db.select().from(productsTable).where(eq(productsTable.id, insertId));
     if (!product) return res.status(500).json({ error: "Insert failed" });
     res.status(201).json(mapProduct({ ...product, categoryName: null }));
   } catch (err) {
@@ -109,7 +111,8 @@ router.put("/products/:id", async (req, res) => {
   try {
     const { id } = UpdateProductParams.parse({ id: Number(req.params.id) });
     const body = UpdateProductBody.parse(req.body);
-    const [product] = await db.update(productsTable).set(body).where(eq(productsTable.id, id)).returning();
+    await db.update(productsTable).set(body).where(eq(productsTable.id, id));
+    const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
     if (!product) return res.status(404).json({ error: "Not found" });
     res.json(mapProduct({ ...product, categoryName: null }));
   } catch (err) {

@@ -116,24 +116,24 @@ router.get("/admin/dashboard", async (req, res) => {
   try {
     const [productStats] = await db
       .select({
-        totalProducts: sql<number>`cast(count(*) as int)`,
-        inStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} > 0 then 1 else 0 end) as int)`,
-        lowStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} <= ${productsTable.lowStockThreshold} then 1 else 0 end) as int)`,
-        outOfStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} = 0 then 1 else 0 end) as int)`,
+        totalProducts: sql<number>`cast(count(*) as unsigned)`,
+        inStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} > 0 then 1 else 0 end) as unsigned)`,
+        lowStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} <= ${productsTable.lowStockThreshold} then 1 else 0 end) as unsigned)`,
+        outOfStockCount: sql<number>`cast(sum(case when ${productsTable.stockQty} = 0 then 1 else 0 end) as unsigned)`,
       })
       .from(productsTable);
 
     const [orderStats] = await db
       .select({
-        totalOrders: sql<number>`cast(count(*) as int)`,
-        totalRevenue: sql<number>`cast(coalesce(sum(total), 0) as numeric)`,
-        pendingOrders: sql<number>`cast(sum(case when status = 'pending' then 1 else 0 end) as int)`,
-        confirmedOrders: sql<number>`cast(sum(case when status = 'confirmed' then 1 else 0 end) as int)`,
+        totalOrders: sql<number>`cast(count(*) as unsigned)`,
+        totalRevenue: sql<number>`cast(coalesce(sum(total), 0) as decimal(10,2))`,
+        pendingOrders: sql<number>`cast(sum(case when status = 'pending' then 1 else 0 end) as unsigned)`,
+        confirmedOrders: sql<number>`cast(sum(case when status = 'confirmed' then 1 else 0 end) as unsigned)`,
       })
       .from(ordersTable);
 
     const [catCount] = await db
-      .select({ totalCategories: sql<number>`cast(count(*) as int)` })
+      .select({ totalCategories: sql<number>`cast(count(*) as unsigned)` })
       .from(categoriesTable);
 
     res.json({
