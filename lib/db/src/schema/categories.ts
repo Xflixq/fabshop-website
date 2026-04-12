@@ -1,12 +1,12 @@
-import { pgTable, varchar, text, serial } from "drizzle-orm/pg-core";
+import { mysqlTable, varchar, longtext, int } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const categoriesTable = pgTable("categories", {
-  id: serial("id").primaryKey(),
+export const categoriesTable = mysqlTable("categories", {
+  id: int("id").primaryKey().autoincrement(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
-  description: text("description").notNull(),
+  description: longtext("description").notNull(),
   imageUrl: varchar("image_url", { length: 500 }),
 });
 

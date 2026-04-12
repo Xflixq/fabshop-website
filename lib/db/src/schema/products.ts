@@ -1,21 +1,21 @@
-import { pgTable, varchar, text, integer, boolean, numeric, serial } from "drizzle-orm/pg-core";
+import { mysqlTable, varchar, longtext, int, boolean, float } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { categoriesTable } from "./categories";
 
-export const productsTable = pgTable("products", {
-  id: serial("id").primaryKey(),
+export const productsTable = mysqlTable("products", {
+  id: int("id").primaryKey().autoincrement(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
-  description: text("description").notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+  description: longtext("description").notNull(),
+  price: float("price").notNull(),
   sku: varchar("sku", { length: 100 }).notNull().unique(),
-  stockQty: integer("stock_qty").notNull().default(0),
-  lowStockThreshold: integer("low_stock_threshold").notNull().default(10),
+  stockQty: int("stock_qty").notNull().default(0),
+  lowStockThreshold: int("low_stock_threshold").notNull().default(10),
   imageUrl: varchar("image_url", { length: 500 }),
   featured: boolean("featured").notNull().default(false),
-  categoryId: integer("category_id").references(() => categoriesTable.id),
-  specs: text("specs"),
+  categoryId: int("category_id").references(() => categoriesTable.id),
+  specs: longtext("specs"),
 });
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true });
