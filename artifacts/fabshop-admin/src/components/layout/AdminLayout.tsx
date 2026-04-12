@@ -1,22 +1,23 @@
-import { useClerk } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { LogOut, LayoutDashboard, Package, ShoppingCart, Printer, Bell } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, ShoppingCart, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 function SignOutButton() {
-  const { signOut } = useClerk();
+  const { logout } = useAdminAuth();
   return (
     <Button
       variant="ghost"
       className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-      onClick={() => signOut()}
+      onClick={async () => {
+        await logout();
+        window.location.href = "/";
+      }}
     >
       <LogOut className="w-4 h-4 mr-2" />
       Sign Out
@@ -31,7 +32,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Package, label: "Inventory", href: "/inventory" },
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
-    { icon: Printer, label: "Labels", href: "/labels" },
     { icon: Bell, label: "Alerts", href: "/alerts" },
   ];
 
@@ -70,7 +70,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         <div className="p-4 border-t border-sidebar-border">
-          {clerkPubKey ? <SignOutButton /> : null}
+          <SignOutButton />
         </div>
       </div>
 

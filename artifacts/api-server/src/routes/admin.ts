@@ -1,9 +1,49 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import { db, productsTable, categoriesTable, ordersTable, orderItemsTable } from "@workspace/db";
-import { eq, sql, lte } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { AdjustStockParams, AdjustStockBody, GetProductLabelParams, SendLowStockAlertBody } from "@workspace/api-zod";
 
 const router = Router();
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "fabshop-admin";
+const COOKIE_NAME = "fab_admin";
+
+function requireAdminAuth(req: Request, res: Response, next: NextFunction) {
+  const token = (req as any).signedCookies?.[COOKIE_NAME];
+  if (token === "authenticated") return next();
+  res.status(401).json({ error: "Unauthorized" });
+}
+
+router.use((req: Request, res: Response, next: NextFunction) => {
+  const publicPaths = ["/admin/auth", "/admin/login", "/admin/logout"];
+  if (publicPaths.includes(req.path)) return next();
+  return requireAdminAuth(req, res, next);
+});
+
+router.get("/admin/auth", (req: Request, res: Response) => {
+  const token = (req as any).signedCookies?.[COOKIE_NAME];
+  res.json({ authenticated: token === "authenticated" });
+});
+
+router.post("/admin/login", (req: Request, res: Response) => {
+  const { password } = req.body ?? {};
+  if (password === ADMIN_PASSWORD) {
+    res.cookie(COOKIE_NAME, "authenticated", {
+      httpOnly: true,
+      signed: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+    });
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: "Invalid password" });
+  }
+});
+
+router.post("/admin/logout", (req: Request, res: Response) => {
+  res.clearCookie(COOKIE_NAME);
+  res.json({ success: true });
+});
 
 function mapInventoryItem(row: any) {
   return {
@@ -49,7 +89,7 @@ router.get("/admin/inventory", async (req, res) => {
 router.post("/admin/inventory/:id/adjust", async (req, res) => {
   try {
     const { id } = AdjustStockParams.parse({ id: Number(req.params.id) });
-    const { delta, reason } = AdjustStockBody.parse(req.body);
+    const { delta } = AdjustStockBody.parse(req.body);
 
     const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
     if (!product) return res.status(404).json({ error: "Product not found" });
@@ -172,6 +212,52 @@ router.get("/admin/orders", async (req, res) => {
       })
     );
     res.json(result);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/test-order", async (req, res) => {
+  try {
+    const [firstProduct] = await db.select().from(productsTable).limit(1);
+    if (!firstProduct) return res.status(400).json({ error: "No products available to create test order" });
+
+    const testSessionId = `test-${Date.now()}`;
+    const testTotal = Number(firstProduct.price);
+
+    const result = await db.insert(ordersTable).values({
+      sessionId: testSessionId,
+      status: "confirmed",
+      total: testTotal.toString(),
+      customerName: "Test Customer",
+      customerEmail: "test@fabshop.dev",
+      shippingAddress: "123 Test Street\nWeld City, WC 12345",
+    });
+
+    const orderId = Number((result[0] as any).insertId);
+
+    await db.insert(orderItemsTable).values({
+      orderId,
+      productId: firstProduct.id,
+      productName: firstProduct.name,
+      price: firstProduct.price,
+      quantity: 1,
+    });
+
+    const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
+    const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
+
+    res.status(201).json({
+      ...order!,
+      total: Number(order!.total),
+      createdAt: order!.createdAt instanceof Date ? order!.createdAt.toISOString() : order!.createdAt,
+      items: items.map((i) => ({
+        ...i,
+        price: Number(i.price),
+        subtotal: Number(i.price) * i.quantity,
+      })),
+    });
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Internal server error" });
