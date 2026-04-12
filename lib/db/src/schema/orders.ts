@@ -2,10 +2,12 @@ import { mysqlTable, varchar, int, float, timestamp, longtext } from "drizzle-or
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { productsTable } from "./products";
+import { usersTable } from "./users";
 
 export const ordersTable = mysqlTable("orders", {
   id: int("id").primaryKey().autoincrement(),
   sessionId: varchar("session_id", { length: 255 }).notNull(),
+  userId: int("user_id").references(() => usersTable.id),
   status: varchar("status", { length: 50 }).notNull().default("pending"),
   total: float("total").notNull(),
   customerName: varchar("customer_name", { length: 255 }).notNull(),

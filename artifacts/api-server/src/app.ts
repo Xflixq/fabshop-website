@@ -2,8 +2,9 @@ import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
-import { CLERK_PROXY_PATH, clerkProxyMiddleware } from "./middlewares/clerkProxyMiddleware";
+import session from "express-session";
+import passport from "passport";
+import "./middlewares/passportConfig"; // Initialize Passport strategies
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -31,17 +32,29 @@ app.use(
   }),
 );
 
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser(ADMIN_COOKIE_SECRET));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Only run Clerk auth middleware when keys are configured
-if (process.env.CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY) {
-  app.use(clerkMiddleware());
-}
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET ?? "fabshop-dev-secret-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // https only in production
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }),
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/api", router);
 
