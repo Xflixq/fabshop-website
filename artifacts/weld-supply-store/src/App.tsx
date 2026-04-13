@@ -10,6 +10,7 @@ import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
+import CheckoutSuccess from "@/pages/checkout-success";
 import OrderDetail from "@/pages/order-detail";
 import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/shop/:id" component={ProductDetail} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
+        <Route path="/checkout/success" component={CheckoutSuccess} />
         <Route path="/orders/:id" component={OrderDetail} />
         <Route component={NotFound} />
       </Switch>

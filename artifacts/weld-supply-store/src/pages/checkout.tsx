@@ -5,10 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   useGetCart, 
-  useCreateOrder,
   getGetCartQueryKey
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { getSessionId, formatCurrency } from "@/lib/session";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Truck, ArrowRight } from "lucide-react";
+import { ShieldCheck, Truck, CreditCard } from "lucide-react";
 
 const checkoutSchema = z.object({
   customerName: z.string().min(2, "Name is required"),

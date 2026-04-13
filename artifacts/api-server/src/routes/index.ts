@@ -8,6 +8,7 @@ import catalogRouter from "./catalog";
 import adminRouter from "./admin";
 import authRouter from "./auth";
 import addressesRouter from "./addresses";
+import checkoutRouter from "./checkout";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(catalogRouter);
 router.use(adminRouter);
 router.use("/auth", authRouter);
 router.use(addressesRouter);
+router.use(checkoutRouter);
 
 export default router;
