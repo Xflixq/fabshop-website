@@ -42,7 +42,7 @@ export default function Home() {
             </div>
             <h1 className="text-5xl md:text-7xl font-black font-sans uppercase tracking-tight leading-[1.1] mb-6">
               Heavy-Duty Parts.<br />
-              <span className="text-primary">No Bullshit.</span>
+              <span className="text-primary">Consumables.</span>
             </h1>
             <p className="text-lg md:text-xl text-zinc-300 font-serif mb-10 max-w-2xl">
               We stock the exact hardware, filler metal, and fabrication supplies you need. Build the roll cage, finish the bracket, get it done right.

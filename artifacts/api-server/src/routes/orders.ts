@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody } from "@workspace/api-zod";
+import { requireAuth } from "./auth";
 
 const router = Router();
 
@@ -36,6 +37,18 @@ router.get("/orders", async (req, res) => {
   }
 });
 
+router.get("/orders/user", requireAuth as any, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, user.id)).orderBy(ordersTable.createdAt);
+    const result = await Promise.all(orders.map((o) => buildOrder(o.id)));
+    res.json(result.filter(Boolean));
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/orders", async (req, res) => {
   try {
     const body = CreateOrderBody.parse(req.body);
@@ -61,7 +74,7 @@ router.post("/orders", async (req, res) => {
 
     const result = await db
       .insert(ordersTable)
-      .values({ sessionId, status: "confirmed", total: total.toString(), customerName, customerEmail, shippingAddress });
+      .values({ sessionId, status: "confirmed", total, customerName, customerEmail, shippingAddress });
 
     const orderId = Number(result[0].insertId);
 

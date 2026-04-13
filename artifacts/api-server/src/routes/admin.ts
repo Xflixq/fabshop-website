@@ -15,6 +15,9 @@ function requireAdminAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 router.use((req: Request, res: Response, next: NextFunction) => {
+  // Only apply admin auth to admin routes
+  if (!req.path.startsWith("/admin/")) return next();
+  
   const publicPaths = ["/admin/auth", "/admin/login", "/admin/logout"];
   if (publicPaths.includes(req.path)) return next();
   return requireAdminAuth(req, res, next);
@@ -221,7 +224,9 @@ router.get("/admin/orders", async (req, res) => {
 router.post("/admin/test-order", async (req, res) => {
   try {
     const [firstProduct] = await db.select().from(productsTable).limit(1);
-    if (!firstProduct) return res.status(400).json({ error: "No products available to create test order" });
+    if (!firstProduct) {
+      return res.status(400).json({ error: "No products available to create test order" });
+    }
 
     const testSessionId = `test-${Date.now()}`;
     const testTotal = Number(firstProduct.price);
@@ -229,7 +234,7 @@ router.post("/admin/test-order", async (req, res) => {
     const result = await db.insert(ordersTable).values({
       sessionId: testSessionId,
       status: "confirmed",
-      total: testTotal.toString(),
+      total: testTotal,
       customerName: "Test Customer",
       customerEmail: "test@fabshop.dev",
       shippingAddress: "123 Test Street\nWeld City, WC 12345",

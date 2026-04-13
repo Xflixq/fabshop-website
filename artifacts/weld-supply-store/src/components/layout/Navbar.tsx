@@ -5,55 +5,42 @@ import { ShoppingCart, Flame, Menu, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Show, useClerk, useUser } from "@clerk/react";
+import { useAuth } from "@/hooks/useAuthContext";
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+function AuthSection() {
+  const { user, isLoading, logout } = useAuth();
 
-function AuthSectionWithClerk() {
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  if (isLoading) {
+    return null;
+  }
 
-  return (
-    <>
-      <Show when="signed-in">
+  if (user) {
+    return (
+      <>
         <span className="hidden md:inline text-sm text-muted-foreground font-medium">
-          {user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Account"}
+          {user.firstName || user.email?.split("@")[0] || "Account"}
         </span>
         <Button
           variant="ghost"
           size="sm"
           className="hidden md:flex items-center gap-1 text-sm uppercase tracking-wider font-bold"
-          onClick={() => signOut()}
+          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           Sign Out
         </Button>
-      </Show>
-      <Show when="signed-out">
-        <Button variant="ghost" size="sm" asChild className="hidden md:flex items-center gap-1 text-sm uppercase tracking-wider font-bold">
-          <Link href="/sign-in">
-            <LogIn className="h-4 w-4" />
-            Sign In
-          </Link>
-        </Button>
-      </Show>
-    </>
-  );
-}
-
-function AuthSection() {
-  if (!clerkPubKey) {
-    return (
-      <Button variant="ghost" size="sm" asChild className="hidden md:flex items-center gap-1 text-sm uppercase tracking-wider font-bold">
-        <Link href="/sign-in">
-          <LogIn className="h-4 w-4" />
-          Sign In
-        </Link>
-      </Button>
+      </>
     );
   }
-  return <AuthSectionWithClerk />;
+
+  return (
+    <Button variant="ghost" size="sm" asChild className="hidden md:flex items-center gap-1 text-sm uppercase tracking-wider font-bold">
+      <Link href="/sign-in">
+        <LogIn className="h-4 w-4" />
+        Sign In
+      </Link>
+    </Button>
+  );
 }
 
 export function Navbar() {
