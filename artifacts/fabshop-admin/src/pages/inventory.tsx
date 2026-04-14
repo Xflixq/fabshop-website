@@ -237,7 +237,7 @@ export function Inventory() {
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
-                        <div className="text-sm font-medium">£{Number(item.price).toFixed(0)}</div>
+                        <div className="text-sm font-medium">£{Number(item.price).toFixed(2)}</div>
                         <div className="text-xs text-muted-foreground">Threshold: {item.lowStockThreshold}</div>
                       </div>
                       {getStockBadge(item.stockQty, item.lowStockThreshold)}
