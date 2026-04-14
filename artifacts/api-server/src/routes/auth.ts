@@ -26,18 +26,26 @@ router.get("/me", (req: Request, res: Response) => {
 });
 
 // Email/Password Login
-router.post("/login", passport.authenticate("local"), (req: Request, res: Response) => {
-  const user = req.user as any;
-  res.json({
-    success: true,
-    user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profileImage: user.profileImage,
-    },
-  });
+router.post("/login", (req: Request, res: Response, next: Function) => {
+  passport.authenticate("local", (err: any, user: any, info: any) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({ error: info?.message || "Incorrect email or password" });
+    }
+    req.logIn(user, (loginErr) => {
+      if (loginErr) return next(loginErr);
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImage: user.profileImage,
+        },
+      });
+    });
+  })(req, res, next);
 });
 
 // Email/Password Registration
@@ -129,6 +137,32 @@ router.get("/success", (req: Request, res: Response) => {
       </body>
     </html>
   `);
+});
+
+// Update profile
+router.patch("/profile", async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const { firstName, lastName } = req.body;
+    const userId = (req.user as any).id;
+    await db
+      .update(usersTable)
+      .set({
+        ...(firstName !== undefined ? { firstName } : {}),
+        ...(lastName !== undefined ? { lastName } : {}),
+      })
+      .where(eq(usersTable.id, userId));
+
+    const updated = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+    const user = updated[0];
+    res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImage: user.profileImage });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
 });
 
 // Logout

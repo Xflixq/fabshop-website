@@ -85,8 +85,16 @@ localPort = 20227
 externalPort = 3002
 
 [[ports]]
+localPort = 20228
+externalPort = 3003
+
+[[ports]]
 localPort = 22689
 externalPort = 3000
+
+[[ports]]
+localPort = 22690
+externalPort = 3001
 
 [userenv]
 
@@ -97,3 +105,6 @@ MYSQL_DATABASE = "FabShop"
 MYSQL_PORT = "3306"
 MYSQL_PASSWORD = "iPFTq9f3AqzFMpE"
 VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_51TLW8x8sAzjU76ghaca3FyqxXxyY8oljMSfZNyDshW53O124OwZ0gCrRqKW8RMqe356FNrZYCfoRrVN1sBtL7uwK00pXx8Hgxs"
+GOOGLE_CLIENT_ID = "73139907678-o9pvjteb9llijv11057i3mdcicekh5c9.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
+GOOGLE_CALLBACK_URL = "https://c8113b4d-2d86-41d6-80d4-6a34481799b3-00-2bnr8fgfd5hg7.janeway.replit.dev/api/auth/google/callback"
