@@ -16,6 +16,7 @@ import SignInPage from "@/pages/sign-in";
 import SignUpPage from "@/pages/sign-up";
 import ProfilePage from "@/pages/profile";
 import AuthSuccess from "@/pages/auth-success";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/sign-up" component={SignUpPage} />
         <Route path="/profile" component={ProfilePage} />
         <Route path="/auth-success" component={AuthSuccess} />
+        <Route path="/settings" component={SettingsPage} />
         <Route path="/shop" component={Shop} />
         <Route path="/shop/:id" component={ProductDetail} />
         <Route path="/cart" component={Cart} />

@@ -139,6 +139,32 @@ router.get("/success", (req: Request, res: Response) => {
   `);
 });
 
+// Update profile
+router.patch("/profile", async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const { firstName, lastName } = req.body;
+    const userId = (req.user as any).id;
+    await db
+      .update(usersTable)
+      .set({
+        ...(firstName !== undefined ? { firstName } : {}),
+        ...(lastName !== undefined ? { lastName } : {}),
+      })
+      .where(eq(usersTable.id, userId));
+
+    const updated = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+    const user = updated[0];
+    res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImage: user.profileImage });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
 // Logout
 router.post("/logout", (req: Request, res: Response, next: Function) => {
   req.logout((err) => {
