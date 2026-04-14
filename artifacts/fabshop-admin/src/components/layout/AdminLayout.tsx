@@ -55,13 +55,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Link key={item.href} href={item.href} className="block">
                 <button
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium",
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium",
                     isActive
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                   )}
                 >
-                  <item.icon className={cn("w-4 h-4", isActive ? "text-primary" : "")} />
+                  <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-primary" : "")} />
                   {item.label}
                 </button>
               </Link>
