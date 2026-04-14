@@ -79,7 +79,7 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </div>
           
-          <div className={`absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-background/90 to-transparent`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-background/90 to-transparent pointer-events-none group-hover:pointer-events-auto`}>
             <Button 
               className="w-full font-bold uppercase tracking-wider" 
               disabled={isOutOfStock || addToCart.isPending}

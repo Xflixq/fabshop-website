@@ -114,6 +114,7 @@ export default function Checkout() {
   const selectedShipping = shippingOptions.find((option) => option.id === selectedShippingId);
   const itemTotal = cart?.total ?? 0;
   const freeShippingRemaining = Math.max(0, 50 - itemTotal);
+  const freeShippingProgress = Math.min(100, (itemTotal / 50) * 100);
   const shippingCost = selectedShipping?.price ?? 0;
   const orderTotal = itemTotal + shippingCost;
   const vatIncluded = orderTotal - orderTotal / 1.2;
@@ -256,8 +257,24 @@ export default function Checkout() {
             </h1>
             <p className="text-muted-foreground font-mono text-sm mt-3">Choose an address, collect delivery options, then pay securely by card.</p>
           </div>
-          <div className="rounded-full bg-zinc-950 text-white px-5 py-3 font-mono text-sm border border-primary/40">
-            {freeShippingRemaining > 0 ? `${formatCurrency(freeShippingRemaining)} until free Royal Mail Tracked 48` : "Free Royal Mail Tracked 48 unlocked"}
+        </div>
+
+        <div className="mb-8 rounded-lg border-2 border-primary/30 bg-primary/5 p-4 md:p-5">
+          <div className="flex items-center justify-between gap-4 text-sm font-mono mb-3">
+            <span className="font-bold uppercase tracking-wider">Free Delivery Progress</span>
+            <span className="text-muted-foreground">
+              {freeShippingRemaining > 0 ? `${formatCurrency(freeShippingRemaining)} to go` : "Free delivery unlocked"}
+            </span>
+          </div>
+          <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${freeShippingProgress}%` }}
+            />
+          </div>
+          <div className="mt-2 flex justify-between text-xs font-mono text-muted-foreground">
+            <span>£0</span>
+            <span>£50 free delivery threshold</span>
           </div>
         </div>
 
