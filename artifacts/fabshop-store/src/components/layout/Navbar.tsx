@@ -278,12 +278,12 @@ export function Navbar() {
           <AuthSection />
 
           <Link href="/cart" className="relative group">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="relative hover:shadow-none active:shadow-none">
+              <ShoppingCart className="h-5 w-5 shrink-0" />
               {itemCount > 0 && (
                 <Badge
                   variant="default"
-                  className="absolute -top-2 -right-2 min-h-6 min-w-6 px-1.5 flex items-center justify-center text-[11px] rounded-full border-2 border-background font-mono leading-none"
+                  className="absolute -top-1.5 -right-1.5 min-h-5 min-w-5 px-1 flex items-center justify-center text-[10px] rounded-full border-2 border-background font-mono leading-none"
                 >
                   {itemCount}
                 </Badge>
