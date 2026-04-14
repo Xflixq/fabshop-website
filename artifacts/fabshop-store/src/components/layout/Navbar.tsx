@@ -283,9 +283,9 @@ export function Navbar() {
               {itemCount > 0 && (
                 <Badge
                   variant="default"
-                  className="absolute -top-1.5 -right-1.5 min-h-5 min-w-5 px-1 flex items-center justify-center text-[10px] rounded-full border-2 border-background font-mono leading-none"
+                  className="absolute -top-1.5 -right-1.5 min-h-5 min-w-5 px-1 flex items-center justify-center text-[10px] rounded-full border-0 font-mono leading-none"
                 >
-                  {itemCount}
+                  <span className="translate-y-[0.5px]">{itemCount}</span>
                 </Badge>
               )}
               <span className="sr-only">Cart</span>

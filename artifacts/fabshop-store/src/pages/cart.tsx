@@ -186,11 +186,11 @@ export default function Cart() {
                 ))}
               </div>
 
-              {quickAddProducts && quickAddProducts.length > 0 && (
-                <div className="mt-10 border-2 rounded-lg p-5 bg-muted/20">
-                  <h2 className="font-black uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-primary" /> Quick add before checkout
-                  </h2>
+              <div className="mt-10 border-2 rounded-lg p-5 bg-muted/20">
+                <h2 className="font-black uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-primary" /> Quick add before checkout
+                </h2>
+                {quickAddProducts && quickAddProducts.filter((product) => !cart.items.some((item) => item.productId === product.id)).length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {quickAddProducts
                       .filter((product) => !cart.items.some((item) => item.productId === product.id))
@@ -214,16 +214,20 @@ export default function Cart() {
                         </div>
                       ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="rounded-md border border-dashed bg-background p-4 text-sm text-muted-foreground font-mono">
+                    No quick add items are available right now. Go back to the shop to add more products.
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-card border-2 rounded-lg p-6 sticky top-24">
-                <h2 className="font-black uppercase tracking-wider text-xl mb-6 pb-4 border-b">Order Summary</h2>
+              <div className="bg-card border-2 rounded-lg p-5 md:p-6 sticky top-24">
+                <h2 className="font-black uppercase tracking-wider text-lg md:text-xl mb-4 pb-3 border-b">Order Summary</h2>
                 
-                <div className="space-y-4 mb-6 text-sm font-mono">
+                <div className="space-y-3 mb-5 text-sm font-mono">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal ({cart.itemCount} items)</span>
                     <span>{formatCurrency(cart.total)}</span>
@@ -240,9 +244,9 @@ export default function Cart() {
                 
                 <Separator className="my-4" />
                 
-                <div className="flex justify-between items-end mb-8">
+                <div className="flex justify-between items-end mb-6">
                   <span className="font-bold uppercase tracking-wider text-sm">Estimated Total</span>
-                  <span className="text-3xl font-black font-mono text-primary">{formatCurrency(cart.total)}</span>
+                  <span className="text-2xl md:text-3xl font-black font-mono text-primary leading-none">{formatCurrency(cart.total)}</span>
                 </div>
                 
                 <Button 
