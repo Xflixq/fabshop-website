@@ -1,0 +1,822 @@
+================================================================================
+                       FABSHOP WEBSITE DESIGN SYSTEM
+                      Complete Brand & Design Specification
+================================================================================
+
+This document provides all necessary design specifications including hex codes,
+fonts, colors, shadows, and layout details for replicating the website design.
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+The Fabshop website consists of three main web applications:
+1. WELD-SUPPLY-STORE - Public e-commerce storefront
+2. FABSHOP-ADMIN - Administrative dashboard
+3. MOCKUP-SANDBOX - Design mockup preview application
+
+All projects use:
+- Tailwind CSS for styling
+- Shadcn/ui components (New York style)
+- CSS custom properties (variables) for theming
+
+================================================================================
+TYPOGRAPHY / FONTS
+================================================================================
+
+PRIMARY SANS-SERIF: Outfit
+- Family: Outfit
+- Import: https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900
+- Weights: 300, 400, 500, 600, 700, 800, 900
+- Usage: Main brand font, headings, body text (on weld-supply-store)
+- Fallback: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif
+
+SECONDARY SANS-SERIF: Inter
+- Family: Inter
+- Weights: Multiple (system default)
+- Usage: Primary sans-serif (fabshop-admin, mockup-sandbox)
+- Fallback: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif
+
+MONOSPACE: Space Mono
+- Family: Space Mono
+- Import: https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap
+- Weights: 400 (Regular), 700 (Bold), plus italic variants
+- Usage: Code, technical text, monospace applications
+- Fallback: ui-monospace, SFMono-Regular, Menlo, Courier, monospace
+
+SERIF (Optional): Georgia
+- Usage: Fallback for serif requirements
+- Weights: Regular, Bold
+
+================================================================================
+WELD-SUPPLY-STORE COLOR PALETTE
+================================================================================
+
+LIGHT MODE (Default):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIMARY COLOR: Safety Orange/Deep Orange
+  Name: primary
+  HSL: 25 95% 50%
+  HEX: #FFB300 (approximate hex conversion)
+  RGB: 255, 179, 0
+  Usage: CTAs, buttons, highlights, brand accent
+
+PRIMARY FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+  Usage: Text on primary backgrounds
+
+SECONDARY COLOR: Navy Blue
+  HSL: 220 10% 80%
+  HEX: #CACED4
+  RGB: 202, 206, 212
+  Usage: Secondary buttons, inactive states
+
+SECONDARY FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+ACCENT: Safety Orange (matches primary)
+  HSL: 25 95% 50%
+  HEX: #FFB300
+  Usage: Highlights, focus states
+
+ACCENT FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+
+BACKGROUND:
+  HSL: 210 10% 98%
+  HEX: #F7F9FB
+  RGB: 247, 249, 251
+  Usage: Page background, neutral surfaces
+
+FOREGROUND (Text):
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+  Usage: Primary text, high contrast
+
+CARD:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+  Usage: Card backgrounds, content containers
+
+CARD FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+CARD BORDER:
+  HSL: 210 10% 85%
+  HEX: #D9DFE8
+  RGB: 217, 223, 232
+  Usage: Card and component borders
+
+BORDER (General):
+  HSL: 210 10% 85%
+  HEX: #D9DFE8
+  RGB: 217, 223, 232
+
+INPUT:
+  HSL: 210 10% 80%
+  HEX: #CED5E0
+  RGB: 206, 213, 224
+  Usage: Form input backgrounds
+
+MUTED:
+  HSL: 210 10% 90%
+  HEX: #E6EBF2
+  RGB: 230, 235, 242
+  Usage: Disabled states, placeholders
+
+MUTED FOREGROUND:
+  HSL: 220 5% 40%
+  HEX: #666A70
+  RGB: 102, 106, 112
+  Usage: Secondary text, help text
+
+POPOVER:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+  Usage: Dropdown, modal backgrounds
+
+POPOVER FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+POPOVER BORDER:
+  HSL: 210 10% 85%
+  HEX: #D9DFE8
+  RGB: 217, 223, 232
+
+RING (Focus):
+  HSL: 25 95% 50%
+  HEX: #FFB300
+  RGB: 255, 179, 0
+  Usage: Focus rings, keyboard navigation
+
+DESTRUCTIVE:
+  HSL: 0 84% 60%
+  HEX: #F24822
+  RGB: 242, 72, 34
+  Usage: Errors, delete actions, warnings
+
+DESTRUCTIVE FOREGROUND:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+
+SIDEBAR:
+  HSL: 220 15% 96%
+  HEX: #F0F3F8
+  RGB: 240, 243, 248
+  Usage: Sidebar/navigation background
+
+SIDEBAR FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+SIDEBAR PRIMARY:
+  HSL: 25 95% 50%
+  HEX: #FFB300
+  RGB: 255, 179, 0
+  Usage: Active sidebar items
+
+SIDEBAR PRIMARY FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+SIDEBAR ACCENT:
+  HSL: 210 10% 90%
+  HEX: #E6EBF2
+  RGB: 230, 235, 242
+  Usage: Sidebar hover states
+
+SIDEBAR ACCENT FOREGROUND:
+  HSL: 220 10% 10%
+  HEX: #1A1F26
+  RGB: 26, 31, 38
+
+SIDEBAR BORDER:
+  HSL: 210 10% 85%
+  HEX: #D9DFE8
+  RGB: 217, 223, 232
+
+SIDEBAR RING:
+  HSL: 25 95% 50%
+  HEX: #FFB300
+  RGB: 255, 179, 0
+
+CHART COLORS (for data visualization):
+  Chart-1: HSL 25 95% 50%   | HEX: #FFB300 | RGB: 255, 179, 0
+  Chart-2: HSL 220 10% 30%  | HEX: #3A4556 | RGB: 58, 69, 86
+  Chart-3: HSL 40 80% 50%   | HEX: #EFCA08 | RGB: 239, 202, 8
+  Chart-4: HSL 210 10% 50%  | HEX: #8899BB | RGB: 136, 153, 187
+  Chart-5: HSL 0 80% 50%    | HEX: #E53935 | RGB: 229, 57, 53
+
+DARK MODE (weld-supply-store):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BACKGROUND:
+  HSL: 220 15% 10%
+  HEX: #15191F
+  RGB: 21, 25, 31
+  Usage: Dark mode page background
+
+FOREGROUND:
+  HSL: 210 10% 90%
+  HEX: #E6EBF2
+  RGB: 230, 235, 242
+  Usage: Dark mode text
+
+CARD:
+  HSL: 220 15% 12%
+  HEX: #191D27
+  RGB: 25, 29, 39
+
+CARD BORDER:
+  HSL: 220 10% 20%
+  HEX: #323B4A
+  RGB: 50, 59, 74
+
+SIDEBAR:
+  HSL: 220 15% 10%
+  HEX: #15191F
+  RGB: 21, 25, 31
+
+SIDEBAR PRIMARY:
+  HSL: 25 95% 55%
+  HEX: #FFC41F
+  RGB: 255, 196, 31
+
+INPUT:
+  HSL: 220 10% 25%
+  HEX: #3F4859
+  RGB: 63, 72, 89
+
+MUTED:
+  HSL: 220 10% 20%
+  HEX: #323B4A
+  RGB: 50, 59, 74
+
+MUTED FOREGROUND:
+  HSL: 210 5% 60%
+  HEX: #99A1AD
+  RGB: 153, 161, 173
+
+PRIMARY/ACCENT:
+  HSL: 25 95% 55%
+  HEX: #FFC41F
+  RGB: 255, 196, 31
+
+DESTRUCTIVE (Dark):
+  HSL: 0 62% 40%
+  HEX: #B71C1C
+  RGB: 183, 28, 28
+
+CHART COLORS (Dark):
+  Chart-1: HSL 25 95% 55%   | HEX: #FFC41F | RGB: 255, 196, 31
+  Chart-2: HSL 220 10% 40%  | HEX: #6B7A94 | RGB: 107, 122, 148
+  Chart-3: HSL 40 80% 50%   | HEX: #EFCA08 | RGB: 239, 202, 8
+  Chart-4: HSL 210 10% 60%  | HEX: #99A1AD | RGB: 153, 161, 173
+  Chart-5: HSL 0 80% 50%    | HEX: #E53935 | RGB: 229, 57, 53
+
+================================================================================
+FABSHOP-ADMIN COLOR PALETTE
+================================================================================
+
+LIGHT MODE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THEME: Industrial/Professional
+
+PRIMARY: Safety Orange
+  HSL: 32 95% 55%
+  HEX: #FFA500
+  RGB: 255, 165, 0
+  Usage: CTAs, active states, brand accent
+
+SECONDARY: Dark Navy/Charcoal
+  HSL: 220 20% 15%
+  HEX: #1F2937
+  RGB: 31, 41, 55
+  Usage: Sidebar, navigation, dark elements
+
+BACKGROUND:
+  HSL: 210 10% 98%
+  HEX: #F7F9FB
+  RGB: 247, 249, 251
+
+FOREGROUND:
+  HSL: 220 20% 15%
+  HEX: #1F2937
+  RGB: 31, 41, 55
+
+CARD:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+
+CARD BORDER:
+  HSL: 214 15% 85%
+  HEX: #D7DCE5
+  RGB: 215, 220, 229
+
+SIDEBAR:
+  HSL: 220 25% 12%
+  HEX: #1A2332
+  RGB: 26, 35, 50
+
+SIDEBAR FOREGROUND:
+  HSL: 210 10% 98%
+  HEX: #F7F9FB
+  RGB: 247, 249, 251
+
+SIDEBAR PRIMARY:
+  HSL: 32 95% 55%
+  HEX: #FFA500
+  RGB: 255, 165, 0
+
+SIDEBAR ACCENT:
+  HSL: 220 20% 18%
+  HEX: #232F42
+  RGB: 35, 47, 66
+
+INPUT:
+  HSL: 214 15% 85%
+  HEX: #D7DCE5
+  RGB: 215, 220, 229
+
+MUTED:
+  HSL: 210 10% 92%
+  HEX: #EAF0F5
+  RGB: 234, 240, 245
+
+MUTED FOREGROUND:
+  HSL: 220 15% 45%
+  HEX: #5B6F84
+  RGB: 91, 111, 132
+
+ACCENT:
+  HSL: 32 95% 95%
+  HEX: #FFF5E1
+  RGB: 255, 245, 225
+
+ACCENT FOREGROUND:
+  HSL: 32 95% 40%
+  HEX: #D68D00
+  RGB: 214, 141, 0
+
+CHART COLORS:
+  Chart-1: HSL 32 95% 55%   | HEX: #FFA500 | RGB: 255, 165, 0
+  Chart-2: HSL 220 20% 15%  | HEX: #1F2937 | RGB: 31, 41, 55
+  Chart-3: HSL 160 80% 40%  | HEX: #0D9488 | RGB: 13, 148, 136
+  Chart-4: HSL 280 60% 50%  | HEX: #9333EA | RGB: 147, 51, 234
+  Chart-5: HSL 340 70% 60%  | HEX: #EC4899 | RGB: 236, 72, 153
+
+DARK MODE (fabshop-admin):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BACKGROUND:
+  HSL: 220 25% 8%
+  HEX: #0F1419
+  RGB: 15, 20, 25
+
+FOREGROUND:
+  HSL: 210 10% 98%
+  HEX: #F7F9FB
+  RGB: 247, 249, 251
+
+CARD:
+  HSL: 220 25% 10%
+  HEX: #131A24
+  RGB: 19, 26, 36
+
+CARD BORDER:
+  HSL: 220 20% 18%
+  HEX: #292F3F
+  RGB: 41, 47, 63
+
+SIDEBAR:
+  HSL: 220 25% 6%
+  HEX: #0A0E15
+  RGB: 10, 14, 21
+
+SIDEBAR PRIMARY:
+  HSL: 32 95% 55%
+  HEX: #FFA500
+  RGB: 255, 165, 0
+
+ACCENT:
+  HSL: 32 40% 15%
+  HEX: #3D2817
+  RGB: 61, 40, 23
+
+ACCENT FOREGROUND:
+  HSL: 32 95% 60%
+  HEX: #FFB84D
+  RGB: 255, 184, 77
+
+================================================================================
+MOCKUP-SANDBOX COLOR PALETTE
+================================================================================
+
+LIGHT MODE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THEME: Minimalist/Template
+
+PRIMARY: Dark Charcoal
+  HSL: 240 5.9% 10%
+  HEX: #1A1A1A
+  RGB: 26, 26, 26
+
+SECONDARY: Light Gray
+  HSL: 240 4.8% 95.9%
+  HEX: #F5F5F5
+  RGB: 245, 245, 245
+
+BACKGROUND:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+
+FOREGROUND:
+  HSL: 240 10% 3.9%
+  HEX: #0A0A0A
+  RGB: 10, 10, 10
+
+CARD:
+  HSL: 0 0% 100%
+  HEX: #FFFFFF
+  RGB: 255, 255, 255
+
+BORDER:
+  HSL: 240 5.9% 90%
+  HEX: #E5E5E5
+  RGB: 229, 229, 229
+
+INPUT:
+  HSL: 240 5.9% 90%
+  HEX: #E5E5E5
+  RGB: 229, 229, 229
+
+MUTED:
+  HSL: 240 4.8% 95.9%
+  HEX: #F5F5F5
+  RGB: 245, 245, 245
+
+MUTED FOREGROUND:
+  HSL: 240 3.8% 46.1%
+  HEX: #757575
+  RGB: 117, 117, 117
+
+DESTRUCTIVE:
+  HSL: 0 84.2% 60.2%
+  HEX: #EF4444
+  RGB: 239, 68, 68
+
+CHART COLORS:
+  Chart-1: HSL 12 76% 61%   | HEX: #FB923C | RGB: 251, 146, 60
+  Chart-2: HSL 173 58% 39%  | HEX: #06B6D4 | RGB: 6, 182, 212
+  Chart-3: HSL 197 37% 24%  | HEX: #0C4A6E | RGB: 12, 74, 110
+  Chart-4: HSL 43 74% 66%   | HEX: #FBBF24 | RGB: 251, 191, 36
+  Chart-5: HSL 27 87% 67%   | HEX: #FB923C | RGB: 251, 146, 60
+
+SIDEBAR:
+  HSL: 0 0% 98%
+  HEX: #F9F9F9
+  RGB: 249, 249, 249
+
+SIDEBAR FOREGROUND:
+  HSL: 240 5.3% 26.1%
+  HEX: #434343
+  RGB: 67, 67, 67
+
+SIDEBAR PRIMARY:
+  HSL: 240 5.9% 10%
+  HEX: #1A1A1A
+  RGB: 26, 26, 26
+
+DARK MODE (mockup-sandbox):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BACKGROUND:
+  HSL: 240 10% 3.9%
+  HEX: #0A0A0A
+  RGB: 10, 10, 10
+
+FOREGROUND:
+  HSL: 0 0% 98%
+  HEX: #FAFAFA
+  RGB: 250, 250, 250
+
+CARD:
+  HSL: 240 10% 3.9%
+  HEX: #0A0A0A
+  RGB: 10, 10, 10
+
+BORDER:
+  HSL: 240 3.7% 15.9%
+  HEX: #2A2A2A
+  RGB: 42, 42, 42
+
+INPUT:
+  HSL: 240 3.7% 15.9%
+  HEX: #2A2A2A
+  RGB: 42, 42, 42
+
+MUTED:
+  HSL: 240 3.7% 15.9%
+  HEX: #2A2A2A
+  RGB: 42, 42, 42
+
+MUTED FOREGROUND:
+  HSL: 240 5% 64.9%
+  HEX: #A5A5A5
+  RGB: 165, 165, 165
+
+PRIMARY:
+  HSL: 0 0% 98%
+  HEX: #FAFAFA
+  RGB: 250, 250, 250
+
+PRIMARY FOREGROUND:
+  HSL: 240 5.9% 10%
+  HEX: #1A1A1A
+  RGB: 26, 26, 26
+
+CHART COLORS (Dark):
+  Chart-1: HSL 220 70% 50%   | HEX: #3B82F6 | RGB: 59, 130, 246
+  Chart-2: HSL 160 60% 45%   | HEX: #14B8A6 | RGB: 20, 184, 166
+  Chart-3: HSL 30 80% 55%    | HEX: #FBBF24 | RGB: 251, 191, 36
+  Chart-4: HSL 280 65% 60%   | HEX: #C084FC | RGB: 192, 132, 252
+  Chart-5: HSL 340 75% 55%   | HEX: #F472B6 | RGB: 244, 114, 182
+
+================================================================================
+SPACING & BORDER RADIUS
+================================================================================
+
+BORDER RADIUS (All Projects):
+  Base Radius: 0.25rem (4 pixels) - Very sharp corners, industrial look
+  Radius-sm: calc(0.25rem - 4px) = -3.75rem (sharp edge)
+  Radius-md: calc(0.25rem - 2px) = -1.75rem (sharp edge)
+  Radius-lg: 0.25rem (4 pixels) - standard
+  Radius-xl: calc(0.25rem + 4px) = 4.25rem (slightly rounded)
+
+SPACING:
+  Base Unit: 0.25rem / 4 pixels
+  Used in margin/padding calculations and gaps
+
+================================================================================
+SHADOWS & ELEVATION
+================================================================================
+
+WELD-SUPPLY-STORE SHADOWS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Shadow-2xs: 0px 2px 0px 0px hsl(220 10% 10% / 0.1)
+Shadow-xs:  0px 2px 0px 0px hsl(220 10% 10% / 0.1)
+Shadow-sm:  0px 2px 0px 0px hsl(220 10% 10% / 0.1),
+            0px 1px 2px -1px hsl(220 10% 10% / 0.1)
+Shadow-md:  0px 2px 0px 0px hsl(220 10% 10% / 0.1),
+            0px 2px 4px -1px hsl(220 10% 10% / 0.1)
+Shadow-lg:  0px 2px 0px 0px hsl(220 10% 10% / 0.1),
+            0px 4px 6px -1px hsl(220 10% 10% / 0.1)
+Shadow-xl:  0px 2px 0px 0px hsl(220 10% 10% / 0.1),
+            0px 8px 10px -1px hsl(220 10% 10% / 0.1)
+Shadow-2xl: 0px 2px 0px 0px hsl(220 10% 10% / 0.1)
+
+DARK SHADOWS:
+Shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5)
+Shadow-xs:  0px 2px 0px 0px hsl(0 0% 0% / 0.5)
+Shadow-sm:  0px 2px 0px 0px hsl(0 0% 0% / 0.5),
+            0px 1px 2px -1px hsl(0 0% 0% / 0.5)
+Shadow-md:  0px 2px 0px 0px hsl(0 0% 0% / 0.5),
+            0px 2px 4px -1px hsl(0 0% 0% / 0.5)
+Shadow-lg:  0px 2px 0px 0px hsl(0 0% 0% / 0.5),
+            0px 4px 6px -1px hsl(0 0% 0% / 0.5)
+Shadow-xl:  0px 2px 0px 0px hsl(0 0% 0% / 0.5),
+            0px 8px 10px -1px hsl(0 0% 0% / 0.5)
+Shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.5)
+
+FABSHOP-ADMIN SHADOWS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.02)
+Shadow-xs:  0px 2px 0px 0px rgba(0,0,0,0.04)
+Shadow-sm:  0px 2px 0px 0px rgba(0,0,0,0.04),
+            0px 1px 2px -1px rgba(0,0,0,0.06)
+Shadow-md:  0px 2px 0px 0px rgba(0,0,0,0.04),
+            0px 2px 4px -1px rgba(0,0,0,0.06)
+Shadow-lg:  0px 2px 0px 0px rgba(0,0,0,0.04),
+            0px 4px 6px -1px rgba(0,0,0,0.06)
+Shadow-xl:  0px 2px 0px 0px rgba(0,0,0,0.04),
+            0px 8px 10px -1px rgba(0,0,0,0.06)
+Shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,0.04)
+
+================================================================================
+COLOR UTILITY VARIABLES
+================================================================================
+
+LIGHT MODE UTILITIES:
+--button-outline: rgba(0, 0, 0, 0.10)
+--badge-outline: rgba(0, 0, 0, 0.05)
+--opaque-button-border-intensity: -8 percentage points
+--elevate-1: rgba(0, 0, 0, 0.03) - Subtle overlay
+--elevate-2: rgba(0, 0, 0, 0.08) - Stronger overlay
+
+DARK MODE UTILITIES:
+--button-outline: rgba(255, 255, 255, 0.10)
+--badge-outline: rgba(255, 255, 255, 0.05)
+--opaque-button-border-intensity: +9 percentage points
+--elevate-1: rgba(255, 255, 255, 0.04) - Subtle overlay
+--elevate-2: rgba(255, 255, 255, 0.09) - Stronger overlay
+
+================================================================================
+TRACKING & LETTER SPACING
+================================================================================
+
+Letter Spacing (tracking): 0em (normal)
+(No custom letter spacing is specified globally)
+
+================================================================================
+COMPONENT STYLING FRAMEWORK
+================================================================================
+
+All projects use Shadcn/ui components with "New York" style preset.
+
+Configuration Details:
+- Style: new-york
+- RSC: false (React Server Components disabled)
+- TSX: true (TypeScript support enabled)
+- Tailwind: CSS Variables enabled
+- Base Color: neutral
+- Prefix: none
+
+Component Aliases:
+- @/components = components directory
+- @/lib/utils = utility functions
+- @/components/ui = UI components
+- @/lib = library functions
+- @/hooks = React hooks
+
+Imported CSS Frameworks:
+- Tailwindcss (core framework)
+- tw-animate-css (animation utilities)
+- @tailwindcss/typography (typography plugin)
+
+================================================================================
+DESIGN PRINCIPLES
+================================================================================
+
+WELD-SUPPLY-STORE:
+1. Industrial/Modern aesthetic with safety orange accent
+2. Clean, spacious layout with ample whitespace
+3. High contrast for accessibility
+4. Dark mode support for reduced eye strain
+5. Consistent use of orange for CTAs to guide user action
+6. Professional typography with Outfit font
+
+FABSHOP-ADMIN:
+1. Professional dashboard design
+2. Industrial/Orange theme for admin interfaces
+3. Dark sidebar for reduced eye strain during long sessions
+4. Clear information hierarchy
+5. Efficient use of space for administrative tasks
+6. Status colors: Orange (action), Green (success), Red (destructive)
+
+MOCKUP-SANDBOX:
+1. Minimalist template design
+2. Neutral color scheme for flexibility
+3. Serves as a preview/prototyping environment
+4. Clean, simple interface for mockup display
+5. Focuses on content with minimal chrome
+
+================================================================================
+RECOMMENDED HEX CODE REFERENCE
+================================================================================
+
+CORE BRANDING COLORS:
+Safety Orange:           #FFB300 (primary, weld-supply-store)
+Safety Orange (Alt):      #FFA500 (primary, fabshop-admin)
+Dark Navy/Charcoal:       #1A1F26, #1F2937, #1A1A1A
+White:                   #FFFFFF
+Black:                   #0A0A0A, #1A1A1A
+Light Gray:              #F7F9FB, #F5F5F5
+
+ACCENT COLORS:
+Red/Destructive:         #F24822, #E53935
+Green/Success:           #0D9488
+Purple:                  #9333EA
+Teal:                    #06B6D4
+
+NEUTRAL GRAYS (Light):
+Very Light:              #F7F9FB (#210 10% 98%)
+Light:                   #E6EBF2 (#210 10% 90%)
+Medium-Light:            #D9DFE8 (#210 10% 85%)
+
+NEUTRAL GRAYS (Dark):
+Darkest:                 #0A0A0A, #015191F
+Very Dark:               #131A24, #15191F
+Dark:                    #232F42, #1F2937
+
+================================================================================
+RESPONSIVE DESIGN & LAYOUT
+================================================================================
+
+Framework: Tailwind CSS responsive utilities
+Breakpoints: Default Tailwind breakpoints
+- sm: 640px
+- md: 768px
+- lg: 1024px
+- xl: 1280px
+- 2xl: 1536px
+
+Mobile-first approach is recommended when extending components.
+
+The codebase includes a 'use-mobile' hook for responsive JavaScript logic.
+
+================================================================================
+ACCESSIBILITY CONSIDERATIONS
+================================================================================
+
+1. High Contrast Text: Foreground colors provide sufficient contrast ratios
+2. Color Not Only: Don't rely solely on color for information
+3. Focus Indicators: Ring color (orange) used for keyboard navigation
+4. ARIA Support: Shadcn/ui components include ARIA attributes
+5. Typography: Multiple font weights (300-900) for emphasis hierarchy
+6. Touch Targets: Buttons and interactive elements are appropriately sized
+
+================================================================================
+ANIMATION & TRANSITIONS
+================================================================================
+
+Framework: tw-animate-css
+Animation utilities are integrated through Tailwind CSS custom properties.
+(Specific keyframe definitions can be found in imported CSS files)
+
+================================================================================
+IMPLEMENTATION NOTES
+================================================================================
+
+1. CSS VARIABLES: All colors use HSL format stored in CSS custom properties
+   Use: var(--primary), var(--background), etc.
+   Allows for theme switching without explicit color changes
+
+2. FONT STACK ORDER:
+   Sans-serif (Outfit): 'Outfit', sans-serif
+   Sans-serif (Inter): 'Inter', ui-sans-serif, system-ui, sans-serif
+   Monospace: 'Space Mono', monospace
+   
+3. THEME SWITCHING: Dark mode uses .dark class on root element
+   Prefer prefers-color-scheme when available
+
+4. BORDER CUSTOMIZATION:
+   Custom-computed borders use @color-space syntax for dynamic lightness
+   Fallback values provided for older browsers
+
+5. TAILWIND CONFIGURATION:
+   cssVariables: true (enables CSS variable use)
+   baseColor: 'neutral' (uses neutral color scale)
+   No prefix applied to utilities
+
+================================================================================
+USAGE EXAMPLE
+================================================================================
+
+To replicate the design:
+
+1. Apply Outfit font import in HTML head or CSS:
+   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900');
+
+2. Set CSS variables in :root or theme selector:
+   :root {
+     --primary: 25 95% 50%;
+     --background: 210 10% 98%;
+     --color-primary: hsl(var(--primary));
+     --color-background: hsl(var(--background));
+   }
+
+3. Apply Tailwind CSS classes with color tokens:
+   <div class="bg-background text-foreground p-4">
+     <button class="bg-primary text-primary-foreground">Click me</button>
+   </div>
+
+4. For dark mode, add 'dark' class:
+   <html class="dark">
+     ...
+   </html>
+
+================================================================================
+                              END OF SPECIFICATION
+================================================================================
