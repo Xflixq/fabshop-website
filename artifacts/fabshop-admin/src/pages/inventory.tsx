@@ -237,7 +237,7 @@ export function Inventory() {
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
-                        <div className="text-sm font-medium">${(Number(item.price) / 100).toFixed(2)}</div>
+                        <div className="text-sm font-medium">£{Number(item.price).toFixed(0)}</div>
                         <div className="text-xs text-muted-foreground">Threshold: {item.lowStockThreshold}</div>
                       </div>
                       {getStockBadge(item.stockQty, item.lowStockThreshold)}
@@ -492,7 +492,7 @@ export function Inventory() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="text-sm text-muted-foreground">
-              Current price: <span className="font-bold text-foreground">${((saleItem?.price ?? 0) / 100).toFixed(2)}</span>
+              Current price: <span className="font-bold text-foreground">£{Number(saleItem?.price ?? 0).toFixed(0)}</span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="sale-price">Sale price</Label>

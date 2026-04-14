@@ -31,7 +31,7 @@ function LabelPreview({ productId }: { productId: number }) {
         )}
       </div>
       <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-        <div className="font-bold text-2xl">${label.price.toFixed(2)}</div>
+        <div className="font-bold text-2xl">£{Number(label.price).toFixed(0)}</div>
         <div className="text-xs font-mono border border-gray-300 px-2 py-1 rounded">
           {label.barcode}
         </div>
