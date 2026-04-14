@@ -92,12 +92,12 @@ router.get("/admin/inventory", async (req, res) => {
 router.post("/admin/inventory/:id/adjust", async (req, res) => {
   try {
     const { id } = AdjustStockParams.parse({ id: Number(req.params.id) });
-    const { delta } = AdjustStockBody.parse(req.body);
+    const { adjustment } = AdjustStockBody.parse(req.body);
 
     const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    const newQty = Math.max(0, Number(product.stockQty) + delta);
+    const newQty = Math.max(0, Number(product.stockQty) + adjustment);
     await db.update(productsTable).set({ stockQty: newQty }).where(eq(productsTable.id, id));
 
     const [updated] = await db
