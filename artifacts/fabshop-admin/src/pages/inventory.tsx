@@ -118,7 +118,20 @@ export function Inventory() {
   const handleCreateProduct = async () => {
     setSavingProduct(true);
     try {
-      const imageUrl = imageFile ? URL.createObjectURL(imageFile) : productForm.imageUrl || "";
+      let imageUrl = productForm.imageUrl || "";
+      if (imageFile) {
+        const fd = new FormData();
+        fd.append("file", imageFile);
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          credentials: "include",
+          body: fd,
+        });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          imageUrl = uploadData.url;
+        }
+      }
       const response = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,17 +162,18 @@ export function Inventory() {
 
   const handleApplySale = async () => {
     if (!saleItem) return;
-    const price = Number(salePrice);
-    if (!price || price <= 0) {
-      toast({ title: "Invalid sale price", description: "Enter a sale price greater than zero", variant: "destructive" });
+    const pct = Number(salePrice);
+    if (!pct || pct <= 0 || pct >= 100) {
+      toast({ title: "Invalid discount", description: "Enter a percentage between 1 and 99", variant: "destructive" });
       return;
     }
+    const newPrice = Math.round(saleItem.price * (1 - pct / 100) * 100) / 100;
     try {
-      await updateProduct(saleItem.id, { price }, "Sale price applied");
+      await updateProduct(saleItem.id, { price: newPrice }, `${pct}% discount applied — new price £${newPrice.toFixed(2)}`);
       setSaleItem(null);
       setSalePrice("");
     } catch {
-      toast({ title: "Error", description: "Failed to apply sale price", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to apply discount", variant: "destructive" });
     }
   };
 

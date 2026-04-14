@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, LayoutDashboard, Package, ShoppingCart, Bell } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, ShoppingCart, Bell, Mail, Megaphone, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -33,6 +33,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Package, label: "Inventory", href: "/inventory" },
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: Bell, label: "Alerts", href: "/alerts" },
+    { icon: Tag, label: "Labels", href: "/labels" },
+    { icon: Megaphone, label: "Banners", href: "/banners" },
+    { icon: Mail, label: "Newsletter", href: "/newsletter" },
   ];
 
   return (

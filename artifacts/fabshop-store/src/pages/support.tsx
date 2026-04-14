@@ -26,11 +26,11 @@ import {
 const faqs = [
   {
     q: "What are your shipping times?",
-    a: "Most in-stock orders ship within 1–2 business days. Standard delivery takes 3–7 business days. Expedited and overnight options are available at checkout for time-sensitive orders.",
+    a: "Most in-stock orders ship within 1–2 business days. Standard delivery takes 2-3 business days.",
   },
   {
     q: "Do you offer free shipping?",
-    a: "Yes! All orders qualify for free standard shipping. No minimum order required.",
+    a: "Yes! All orders over £50 qualify for free standard shipping.",
   },
   {
     q: "What is your return policy?",
@@ -51,10 +51,6 @@ const faqs = [
   {
     q: "What payment methods do you accept?",
     a: "We accept all major credit and debit cards (Visa, Mastercard, Amex, Discover) processed securely via Stripe. We do not store any card details.",
-  },
-  {
-    q: "Can I change or cancel my order after placing it?",
-    a: "Orders can be modified or cancelled within 1 hour of placement. After that, we begin processing for shipment. Contact support immediately if you need to make changes.",
   },
 ];
 
@@ -97,7 +93,7 @@ export default function SupportPage() {
               <h3 className="font-bold text-lg">Email Us</h3>
               <p className="text-muted-foreground text-sm">For general inquiries and order questions</p>
               <a
-                href="mailto:support@fabshop.com"
+                href="mailto:support@fabshop.xflixq.com"
                 className="text-primary font-semibold text-sm hover:underline block"
               >
                 support@fabshop.com
@@ -113,10 +109,10 @@ export default function SupportPage() {
               <h3 className="font-bold text-lg">Call Us</h3>
               <p className="text-muted-foreground text-sm">Talk directly to our support team</p>
               <a
-                href="tel:+18005551234"
+                href="tel:+447572642550"
                 className="text-primary font-semibold text-sm hover:underline block"
               >
-                1-800-555-1234
+                +44 7572 642550
               </a>
             </CardContent>
           </Card>

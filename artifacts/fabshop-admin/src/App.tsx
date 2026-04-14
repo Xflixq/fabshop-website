@@ -6,6 +6,9 @@ import { Dashboard } from "@/pages/dashboard";
 import { Inventory } from "@/pages/inventory";
 import { Orders } from "@/pages/orders";
 import { Alerts } from "@/pages/alerts";
+import { Labels } from "@/pages/labels";
+import { Newsletter } from "@/pages/newsletter";
+import { Banners } from "@/pages/banners";
 import { AdminLogin } from "@/pages/AdminLogin";
 import NotFound from "@/pages/not-found";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -34,6 +37,9 @@ function AppRoutes() {
       <Route path="/inventory" component={Inventory} />
       <Route path="/orders" component={Orders} />
       <Route path="/alerts" component={Alerts} />
+      <Route path="/labels" component={Labels} />
+      <Route path="/newsletter" component={Newsletter} />
+      <Route path="/banners" component={Banners} />
       <Route component={NotFound} />
     </Switch>
   );
