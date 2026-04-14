@@ -39,7 +39,7 @@ export default function Cart() {
     if (newQuantity < 1) return;
     
     updateItem.mutate(
-      { id: itemId, data: { quantity: newQuantity } },
+      { cartItemId: itemId, data: { quantity: newQuantity } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey({ sessionId }) });
@@ -50,7 +50,7 @@ export default function Cart() {
 
   const handleRemove = (itemId: number) => {
     removeItem.mutate(
-      { id: itemId },
+      { cartItemId: itemId },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey({ sessionId }) });

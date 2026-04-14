@@ -22,13 +22,14 @@ import { getSessionId, formatCurrency } from "@/lib/session";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck, Truck, ArrowRight, Loader2, MapPin, Sparkles, PackagePlus } from "lucide-react";
 
-const shippingOptions = [
-  { id: "royal-mail-tracked-48", carrier: "Royal Mail", label: "Tracked 48", eta: "2–3 working days", price: 3.95 },
-  { id: "royal-mail-tracked-24", carrier: "Royal Mail", label: "Tracked 24", eta: "1–2 working days", price: 4.95 },
-  { id: "royal-mail-special-delivery", carrier: "Royal Mail", label: "Special Delivery Guaranteed", eta: "Next working day", price: 7.95 },
-  { id: "dpd-tracked", carrier: "DPD", label: "Tracked Standard", eta: "1–2 working days", price: 5.95 },
-  { id: "dpd-next-day", carrier: "DPD", label: "Next Day Tracked", eta: "Next working day", price: 8.95 },
-];
+type ShippingOption = {
+  id: string;
+  carrier: string;
+  label: string;
+  eta: string;
+  price: number;
+  freeEligible: boolean;
+};
 
 const checkoutSchema = z.object({
   customerName: z.string().min(2, "Name is required"),
@@ -61,6 +62,9 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | "new">("new");
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [packageWeightKg, setPackageWeightKg] = useState(0);
 
   const { data: cart, isLoading } = useGetCart(
     { sessionId },
@@ -110,7 +114,7 @@ export default function Checkout() {
   const selectedShipping = shippingOptions.find((option) => option.id === selectedShippingId);
   const itemTotal = cart?.total ?? 0;
   const freeShippingRemaining = Math.max(0, 50 - itemTotal);
-  const shippingCost = itemTotal >= 50 ? 0 : selectedShipping?.price ?? 0;
+  const shippingCost = selectedShipping?.price ?? 0;
   const orderTotal = itemTotal + shippingCost;
   const vatIncluded = orderTotal - orderTotal / 1.2;
 
@@ -128,6 +132,48 @@ export default function Checkout() {
     form.setValue("zipCode", address.zipCode);
     form.setValue("country", address.country || "United Kingdom");
   };
+
+  useEffect(() => {
+    if (!addressComplete || !cart || cart.items.length === 0) {
+      setShippingOptions([]);
+      setPackageWeightKg(0);
+      form.setValue("shippingMethod", "");
+      return;
+    }
+
+    const controller = new AbortController();
+    setShippingLoading(true);
+    fetch("/api/checkout/shipping-options", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ sessionId }),
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error ?? "Failed to calculate delivery");
+        }
+        return res.json();
+      })
+      .then((quote) => {
+        const options = Array.isArray(quote.options) ? quote.options : [];
+        setShippingOptions(options);
+        setPackageWeightKg(Number(quote.packageWeightKg ?? 0));
+        if (!options.some((option: ShippingOption) => option.id === form.getValues("shippingMethod"))) {
+          form.setValue("shippingMethod", "");
+        }
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setShippingOptions([]);
+        toast({ title: "Delivery unavailable", description: err.message, variant: "destructive" });
+      })
+      .finally(() => setShippingLoading(false));
+
+    return () => controller.abort();
+  }, [addressComplete, cart?.itemCount, cart?.total, sessionId]);
 
   const chooseNewAddress = () => {
     setSelectedAddressId("new");
@@ -160,10 +206,7 @@ export default function Checkout() {
             country: values.country,
           },
           shippingMethod: selectedShipping?.id,
-          shippingLabel: selectedShipping ? `${selectedShipping.carrier} ${selectedShipping.label}` : "",
-          shippingCost,
           vatIncluded,
-          total: orderTotal,
         }),
       });
 
@@ -214,7 +257,7 @@ export default function Checkout() {
             <p className="text-muted-foreground font-mono text-sm mt-3">Choose an address, collect delivery options, then pay securely by card.</p>
           </div>
           <div className="rounded-full bg-zinc-950 text-white px-5 py-3 font-mono text-sm border border-primary/40">
-            {freeShippingRemaining > 0 ? `${formatCurrency(freeShippingRemaining)} until free shipping` : "Free shipping unlocked"}
+            {freeShippingRemaining > 0 ? `${formatCurrency(freeShippingRemaining)} until free Royal Mail Tracked 48` : "Free Royal Mail Tracked 48 unlocked"}
           </div>
         </div>
 
@@ -315,15 +358,19 @@ export default function Checkout() {
                       </span>
                       <div>
                         <h3 className="font-black uppercase tracking-wider">Delivery Method</h3>
-                        <p className="text-xs font-mono">{addressComplete ? selectedAddressText : "Enter or select an address to collect tracked delivery options"}</p>
+                        <p className="text-xs font-mono">{addressComplete ? `${selectedAddressText}${packageWeightKg ? ` · ${packageWeightKg.toFixed(2)} kg packed` : ""}` : "Enter or select an address to collect tracked delivery options"}</p>
                       </div>
                     </div>
 
                     <FormField control={form.control} name="shippingMethod" render={({ field }) => (
                       <FormItem>
                         <div className="grid gap-3">
-                          {shippingOptions.map((option) => {
-                            const isFree = itemTotal >= 50;
+                          {shippingLoading && (
+                            <div className="rounded-lg border-2 border-dashed p-4 text-sm font-mono text-muted-foreground">
+                              Calculating delivery from basket weight…
+                            </div>
+                          )}
+                          {!shippingLoading && shippingOptions.map((option) => {
                             const selected = field.value === option.id;
                             return (
                               <button
@@ -338,7 +385,10 @@ export default function Checkout() {
                                     <div className="font-bold">{option.carrier} {option.label}</div>
                                     <div className="text-xs text-muted-foreground font-mono">{option.eta}</div>
                                   </div>
-                                  <div className="font-mono font-bold text-primary">{isFree ? "Free" : formatCurrency(option.price)}</div>
+                                  <div className="text-right font-mono font-bold text-primary">
+                                    {option.price === 0 ? "Free" : formatCurrency(option.price)}
+                                    {option.freeEligible && itemTotal >= 50 && <div className="text-[10px] text-muted-foreground">£50+ promo</div>}
+                                  </div>
                                 </div>
                               </button>
                             );
@@ -350,7 +400,7 @@ export default function Checkout() {
                   </div>
 
                   <div className="pt-6 border-t">
-                    <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold uppercase tracking-wider" disabled={isSubmitting || !selectedShipping}>
+                    <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold uppercase tracking-wider" disabled={isSubmitting || shippingLoading || !selectedShipping}>
                       {isSubmitting ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Redirecting to payment…</> : <>Pay with Stripe<ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
                     <p className="text-center text-xs text-muted-foreground font-mono mt-4 flex items-center justify-center">
@@ -384,7 +434,8 @@ export default function Checkout() {
 
               <div className="space-y-3 text-sm font-mono text-zinc-400 mb-6">
                 <div className="flex justify-between"><span>Items subtotal</span><span className="text-white">{formatCurrency(itemTotal)}</span></div>
-                <div className="flex justify-between"><span>Delivery</span><span className="text-white">{itemTotal >= 50 ? "Free" : selectedShipping ? formatCurrency(shippingCost) : "Choose option"}</span></div>
+                <div className="flex justify-between"><span>Delivery</span><span className="text-white">{selectedShipping ? (shippingCost === 0 ? "Free" : formatCurrency(shippingCost)) : "Choose option"}</span></div>
+                {packageWeightKg > 0 && <div className="flex justify-between"><span>Packed weight</span><span className="text-white">{packageWeightKg.toFixed(2)} kg</span></div>}
                 <div className="flex justify-between"><span>VAT included</span><span className="text-white">{formatCurrency(vatIncluded)}</span></div>
                 {selectedShipping && <div className="flex justify-between"><span>Method</span><span className="text-white text-right">{selectedShipping.carrier}<br />{selectedShipping.label}</span></div>}
               </div>

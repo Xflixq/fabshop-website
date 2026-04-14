@@ -14,6 +14,7 @@ async function buildCart(sessionId: string) {
       productImageUrl: productsTable.imageUrl,
       price: cartItemsTable.price,
       quantity: cartItemsTable.quantity,
+      weightKg: productsTable.weightKg,
     })
     .from(cartItemsTable)
     .innerJoin(productsTable, eq(productsTable.id, cartItemsTable.productId))
@@ -22,6 +23,7 @@ async function buildCart(sessionId: string) {
   const cartItems = items.map((item) => ({
     ...item,
     price: Number(item.price),
+    weightKg: Number(item.weightKg ?? 1),
     subtotal: Number(item.price) * item.quantity,
   }));
 

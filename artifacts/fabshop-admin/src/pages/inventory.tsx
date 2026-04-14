@@ -32,6 +32,7 @@ const emptyProductForm = {
   imageUrl: "",
   categoryId: "",
   specs: "",
+  weightKg: "1",
   featured: false,
 };
 
@@ -88,7 +89,7 @@ export function Inventory() {
       toast({ title: "Invalid delta", description: "Please enter a valid number", variant: "destructive" });
       return;
     }
-    adjustStock.mutate({ id: adjustItem.id, data: { delta: d, reason: reason || undefined } });
+    adjustStock.mutate({ id: adjustItem.id, data: { adjustment: d, reason: reason || undefined } });
   };
 
   const updateProduct = async (id: number, data: Record<string, unknown>, successMessage: string) => {
@@ -124,6 +125,7 @@ export function Inventory() {
           stockQty: Number(productForm.stockQty || 0),
           lowStockThreshold: Number(productForm.lowStockThreshold || 10),
           categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
+          weightKg: Number(productForm.weightKg || 1),
         }),
       });
       if (!response.ok) throw new Error("Create failed");
@@ -223,6 +225,7 @@ export function Inventory() {
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
                         <div className="text-sm font-medium">${item.price.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">Weight: {Number(item.weightKg ?? 1).toFixed(2)} kg</div>
                         <div className="text-xs text-muted-foreground">Threshold: {item.lowStockThreshold}</div>
                       </div>
                       {getStockBadge(item.stockQty, item.lowStockThreshold)}
@@ -367,6 +370,10 @@ export function Inventory() {
                 <Label htmlFor="new-threshold">Low stock threshold</Label>
                 <Input id="new-threshold" type="number" value={productForm.lowStockThreshold} onChange={(e) => setProductForm({ ...productForm, lowStockThreshold: e.target.value })} />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-weight">Packed weight (kg)</Label>
+              <Input id="new-weight" type="number" min="0.01" step="0.01" value={productForm.weightKg} onChange={(e) => setProductForm({ ...productForm, weightKg: e.target.value })} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">

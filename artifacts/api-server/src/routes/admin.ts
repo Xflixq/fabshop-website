@@ -59,6 +59,98 @@ function mapInventoryItem(row: any) {
     categoryId: row.categoryId ?? null,
     imageUrl: row.imageUrl ?? null,
     specs: row.specs ?? null,
+    weightKg: Number(row.weightKg ?? 1),
+    isLowStock: Number(row.stockQty) <= Number(row.lowStockThreshold ?? 5),
+  };
+}
+
+function getCarrierFromMethod(method?: string | null) {
+  if (!method) return null;
+  if (method.startsWith("royal-mail")) return "royal-mail";
+  if (method.startsWith("dpd")) return "dpd";
+  return null;
+}
+
+async function createRoyalMailShipment(order: any, items: any[]) {
+  const apiUrl = process.env.ROYAL_MAIL_API_URL;
+  const apiKey = process.env.ROYAL_MAIL_API_KEY;
+  const accountNumber = process.env.ROYAL_MAIL_ACCOUNT_NUMBER;
+  if (!apiUrl || !apiKey || !accountNumber) {
+    throw new Error("Royal Mail API credentials are not configured");
+  }
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      accountNumber,
+      orderReference: `FAB-${String(order.id).padStart(8, "0")}`,
+      serviceCode: order.shippingMethod,
+      recipient: {
+        name: order.customerName,
+        email: order.customerEmail,
+        address: order.shippingAddress,
+      },
+      parcel: {
+        weightKg: Number(order.packageWeightKg || 0),
+        contents: items.map((item) => `${item.productName} x${item.quantity}`),
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Royal Mail label failed: ${body || response.statusText}`);
+  }
+  const data = await response.json();
+  return {
+    provider: "Royal Mail",
+    trackingNumber: data.trackingNumber ?? data.tracking_number ?? data.shipmentId ?? null,
+    labelUrl: data.labelUrl ?? data.label_url ?? data.label?.url ?? null,
+  };
+}
+
+async function createDpdShipment(order: any, items: any[]) {
+  const apiUrl = process.env.DPD_API_URL;
+  const username = process.env.DPD_USERNAME;
+  const password = process.env.DPD_PASSWORD;
+  if (!apiUrl || !username || !password) {
+    throw new Error("DPD API credentials are not configured");
+  }
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
+    },
+    body: JSON.stringify({
+      orderReference: `FAB-${String(order.id).padStart(8, "0")}`,
+      serviceCode: order.shippingMethod,
+      recipient: {
+        name: order.customerName,
+        email: order.customerEmail,
+        address: order.shippingAddress,
+      },
+      parcel: {
+        weightKg: Number(order.packageWeightKg || 0),
+        contents: items.map((item) => `${item.productName} x${item.quantity}`),
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`DPD label failed: ${body || response.statusText}`);
+  }
+  const data = await response.json();
+  return {
+    provider: "DPD",
+    trackingNumber: data.trackingNumber ?? data.tracking_number ?? data.consignmentNumber ?? null,
+    labelUrl: data.labelUrl ?? data.label_url ?? data.label?.url ?? null,
   };
 }
 
@@ -79,6 +171,7 @@ router.get("/admin/inventory", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId));
@@ -124,6 +217,7 @@ router.post("/admin/products", async (req, res) => {
       featured: Boolean(body.featured),
       categoryId: body.categoryId ? Number(body.categoryId) : null,
       specs: body.specs ? String(body.specs) : null,
+      weightKg: Number(body.weightKg || 1),
     });
     const insertId = Number((result[0] as any).insertId);
     const [created] = await db
@@ -141,6 +235,7 @@ router.post("/admin/products", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
@@ -167,6 +262,7 @@ router.patch("/admin/products/:id", async (req, res) => {
     if (body.featured !== undefined) updates.featured = Boolean(body.featured);
     if (body.categoryId !== undefined) updates.categoryId = body.categoryId ? Number(body.categoryId) : null;
     if (body.specs !== undefined) updates.specs = body.specs ? String(body.specs) : null;
+    if (body.weightKg !== undefined) updates.weightKg = Math.max(0.01, Number(body.weightKg) || 1);
 
     await db.update(productsTable).set(updates).where(eq(productsTable.id, id));
     const [updated] = await db
@@ -184,6 +280,7 @@ router.patch("/admin/products/:id", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
@@ -222,6 +319,7 @@ router.post("/admin/inventory/:id/adjust", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
@@ -251,6 +349,7 @@ router.get("/admin/low-stock", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
@@ -312,10 +411,13 @@ router.get("/admin/orders", async (req, res) => {
         return {
           ...order,
           total: Number(order.total),
+          shippingCost: Number(order.shippingCost ?? 0),
+          packageWeightKg: Number(order.packageWeightKg ?? 0),
           createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : order.createdAt,
           items: items.map((i) => ({
             ...i,
             price: Number(i.price),
+            weightKg: Number(i.weightKg ?? 0),
             subtotal: Number(i.price) * i.quantity,
           })),
         };
@@ -325,6 +427,42 @@ router.get("/admin/orders", async (req, res) => {
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/orders/:id/shipping-label", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+    const carrier = getCarrierFromMethod(order.shippingMethod);
+    if (!carrier) return res.status(400).json({ error: "Order has no supported shipping method" });
+
+    if (order.shipmentLabelUrl || order.shipmentTrackingNumber) {
+      return res.json({
+        provider: order.shipmentProvider,
+        trackingNumber: order.shipmentTrackingNumber,
+        labelUrl: order.shipmentLabelUrl,
+      });
+    }
+
+    const shipment = carrier === "royal-mail"
+      ? await createRoyalMailShipment(order, items)
+      : await createDpdShipment(order, items);
+
+    await db.update(ordersTable).set({
+      shipmentProvider: shipment.provider,
+      shipmentTrackingNumber: shipment.trackingNumber,
+      shipmentLabelUrl: shipment.labelUrl,
+      status: "shipped",
+    }).where(eq(ordersTable.id, id));
+
+    res.json(shipment);
+  } catch (err: any) {
+    req.log.error(err);
+    res.status(502).json({ error: err.message ?? "Failed to create shipping label" });
   }
 });
 
@@ -345,6 +483,10 @@ router.post("/admin/test-order", async (req, res) => {
       customerName: "Test Customer",
       customerEmail: "test@fabshop.dev",
       shippingAddress: "123 Test Street\nWeld City, WC 12345",
+      shippingMethod: "royal-mail-tracked-48",
+      shippingLabel: "Royal Mail Tracked 48",
+      shippingCost: 0,
+      packageWeightKg: Number(firstProduct.weightKg ?? 1),
     });
 
     const orderId = Number((result[0] as any).insertId);
@@ -355,6 +497,7 @@ router.post("/admin/test-order", async (req, res) => {
       productName: firstProduct.name,
       price: firstProduct.price,
       quantity: 1,
+      weightKg: Number(firstProduct.weightKg ?? 1),
     });
 
     const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));

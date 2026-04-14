@@ -29,6 +29,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  weightKg?: number;
 }
 
 interface Order {
@@ -38,12 +39,47 @@ interface Order {
   customerName: string;
   customerEmail: string;
   shippingAddress: string;
+  shippingMethod?: string | null;
+  shippingLabel?: string | null;
+  shippingCost?: number;
+  packageWeightKg?: number;
+  shipmentProvider?: string | null;
+  shipmentTrackingNumber?: string | null;
+  shipmentLabelUrl?: string | null;
   createdAt: string;
   items: OrderItem[];
 }
 
 function ShippingLabelDialog({ order, open, onClose }: { order: Order; open: boolean; onClose: () => void }) {
-  const handlePrint = () => window.print();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [labelResult, setLabelResult] = useState<{ provider?: string | null; trackingNumber?: string | null; labelUrl?: string | null } | null>(
+    order.shipmentLabelUrl || order.shipmentTrackingNumber
+      ? { provider: order.shipmentProvider, trackingNumber: order.shipmentTrackingNumber, labelUrl: order.shipmentLabelUrl }
+      : null
+  );
+  const { toast } = useToast();
+
+  const handlePrint = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/shipping-label`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "Failed to create shipping label");
+      setLabelResult(body);
+      if (body.labelUrl) {
+        window.open(body.labelUrl, "_blank", "noopener,noreferrer");
+      } else {
+        window.print();
+      }
+    } catch (err: any) {
+      toast({ title: "Label failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -77,18 +113,28 @@ function ShippingLabelDialog({ order, open, onClose }: { order: Order; open: boo
           </div>
 
           <div className="border-t border-gray-200 pt-3">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Service</div>
+            <div className="mb-3 text-xs">
+              <div className="font-bold">{order.shippingLabel || "No shipping method saved"}</div>
+              <div>{Number(order.packageWeightKg ?? 0).toFixed(2)} kg package</div>
+              {labelResult?.trackingNumber && <div className="font-mono">Tracking: {labelResult.trackingNumber}</div>}
+            </div>
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Contents</div>
             <div className="space-y-1">
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-xs">
                   <span>{item.productName} × {item.quantity}</span>
-                  <span>${item.subtotal.toFixed(2)}</span>
+                  <span>£{item.subtotal.toFixed(2)}</span>
                 </div>
               ))}
             </div>
+            <div className="flex justify-between text-xs pt-2">
+              <span>Shipping</span>
+              <span>£{Number(order.shippingCost ?? 0).toFixed(2)}</span>
+            </div>
             <div className="flex justify-between text-sm font-bold pt-2 border-t border-gray-200 mt-2">
               <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>£{order.total.toFixed(2)}</span>
             </div>
           </div>
 
@@ -102,9 +148,9 @@ function ShippingLabelDialog({ order, open, onClose }: { order: Order; open: boo
 
         <div className="flex justify-end gap-2 print:hidden">
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={handlePrint}>
+          <Button onClick={handlePrint} disabled={isGenerating || !order.shippingMethod}>
             <Printer className="w-4 h-4 mr-2" />
-            Print Label
+            {isGenerating ? "Creating..." : labelResult?.labelUrl ? "Open Label" : "Create Label"}
           </Button>
         </div>
       </DialogContent>
@@ -249,7 +295,7 @@ export function Orders() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-semibold">${Number(order.total).toFixed(2)}</div>
+                        <div className="font-semibold">£{Number(order.total).toFixed(2)}</div>
                         <div className="text-xs text-muted-foreground">{order.items.length} item{order.items.length !== 1 ? "s" : ""}</div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -300,6 +346,16 @@ export function Orders() {
                             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Ship To</div>
                             <div className="text-sm whitespace-pre-line">{order.shippingAddress}</div>
                           </div>
+                          <div>
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Delivery</div>
+                            <div className="text-sm">{order.shippingLabel || "Not saved"}</div>
+                            <div className="text-xs text-muted-foreground">
+                              £{Number(order.shippingCost ?? 0).toFixed(2)} · {Number(order.packageWeightKg ?? 0).toFixed(2)} kg
+                            </div>
+                            {order.shipmentTrackingNumber && (
+                              <div className="text-xs font-mono text-muted-foreground">Tracking: {order.shipmentTrackingNumber}</div>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Items</div>
@@ -311,13 +367,13 @@ export function Orders() {
                                   <span>{item.productName}</span>
                                   <span className="text-muted-foreground">×{item.quantity}</span>
                                 </div>
-                                <span className="font-medium">${Number(item.subtotal).toFixed(2)}</span>
+                                <span className="font-medium">£{Number(item.subtotal).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
                           <div className="flex justify-between items-center pt-2">
                             <div className="text-sm font-semibold">
-                              Total: ${Number(order.total).toFixed(2)}
+                              Total: £{Number(order.total).toFixed(2)}
                             </div>
                             <Button
                               variant="outline"

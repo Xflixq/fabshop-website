@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-card border-t py-12 md:py-16">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4 group inline-flex">
               <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
@@ -39,6 +39,11 @@ export function Footer() {
                   View Cart
                 </Link>
               </li>
+              <li>
+                <Link href="/checkout" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Checkout
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -55,29 +60,33 @@ export function Footer() {
                   Create Account
                 </Link>
               </li>
+              <li>
+                <Link href="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Profile
+                </Link>
+              </li>
+              <li>
+                <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Settings
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-4">Help & Legal</h3>
+            <ul className="space-y-3">
+              <li><Link href="/support" className="text-muted-foreground hover:text-foreground transition-colors">Support</Link></li>
+              <li><Link href="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping</Link></li>
+              <li><Link href="/returns" className="text-muted-foreground hover:text-foreground transition-colors">Returns</Link></li>
+              <li><Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy & GDPR</Link></li>
+              <li><Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</Link></li>
+              <li><Link href="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">Cookies</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t mt-12 pt-8">
-          <div className="mb-6">
-            <h3 className="font-bold text-sm uppercase tracking-wider mb-3 text-foreground">Site Pages</h3>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-              <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link>
-              <Link href="/shop" className="text-muted-foreground hover:text-foreground transition-colors">Catalog</Link>
-              <Link href="/featured" className="text-muted-foreground hover:text-foreground transition-colors">Featured</Link>
-              <Link href="/cart" className="text-muted-foreground hover:text-foreground transition-colors">Cart</Link>
-              <Link href="/checkout" className="text-muted-foreground hover:text-foreground transition-colors">Checkout</Link>
-              <Link href="/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link>
-              <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</Link>
-              <Link href="/support" className="text-muted-foreground hover:text-foreground transition-colors">Support</Link>
-              <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy & GDPR</Link>
-              <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
-              <Link href="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">Cookies</Link>
-              <Link href="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping</Link>
-              <Link href="/returns" className="text-muted-foreground hover:text-foreground transition-colors">Returns</Link>
-            </div>
-          </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground font-mono">
           <p>&copy; {new Date().getFullYear()} FabShop. All rights reserved.</p>
             <p>Built for the trade.</p>

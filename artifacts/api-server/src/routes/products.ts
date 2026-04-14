@@ -18,6 +18,7 @@ function mapProduct(row: any) {
     featured: Boolean(row.featured),
     lowStockThreshold: Number(row.lowStockThreshold ?? 5),
     stockQty: Number(row.stockQty),
+    weightKg: Number(row.weightKg ?? 1),
   };
 }
 
@@ -51,6 +52,7 @@ router.get("/products", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
@@ -95,6 +97,7 @@ router.get("/products/:id", async (req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         specs: productsTable.specs,
+        weightKg: productsTable.weightKg,
       })
       .from(productsTable)
       .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))

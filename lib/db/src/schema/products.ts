@@ -16,6 +16,7 @@ export const productsTable = mysqlTable("products", {
   featured: boolean("featured").notNull().default(false),
   categoryId: int("category_id").references(() => categoriesTable.id),
   specs: longtext("specs"),
+  weightKg: float("weight_kg").notNull().default(1),
 });
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true });
