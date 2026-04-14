@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import passport from "passport";
 import bcryptjs from "bcryptjs";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, addressesTable, ordersTable, orderItemsTable, savedPaymentMethodsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
@@ -52,33 +52,29 @@ router.post("/login", (req: Request, res: Response, next: Function) => {
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, firstName, lastName } = req.body;
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    // Validate input
-    if (!email || !password) {
+    if (!normalizedEmail || !password || password.length < 8) {
       res.status(400).json({ error: "Email and password are required" });
       return;
     }
 
-    // Check if user already exists
-    const existingUsers = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+    const existingUsers = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail)).limit(1);
     if (existingUsers.length > 0) {
       res.status(400).json({ error: "Email already exists" });
       return;
     }
 
-    // Hash password
-    const hashedPassword = await bcryptjs.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 12);
 
-    // Create new user
     await db.insert(usersTable).values({
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       firstName: firstName || "",
       lastName: lastName || "",
     });
 
-    // Fetch the newly created user
-    const newUsers = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+    const newUsers = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail)).limit(1);
     const user = newUsers[0];
 
     // Log the user in
@@ -99,7 +95,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
       });
     });
   } catch (err) {
-    console.error("Registration error:", err);
+    req.log.error(err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
@@ -160,8 +156,80 @@ router.patch("/profile", async (req: Request, res: Response): Promise<void> => {
     const user = updated[0];
     res.json({ id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImage: user.profileImage });
   } catch (err) {
-    console.error("Profile update error:", err);
+    req.log.error(err);
     res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+router.get("/privacy/export", requireAuth as any, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user as any;
+    const addresses = await db.select().from(addressesTable).where(eq(addressesTable.userId, user.id));
+    const paymentMethods = await db.select().from(savedPaymentMethodsTable).where(eq(savedPaymentMethodsTable.userId, user.id));
+    const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, user.id));
+    const orderItems = await Promise.all(
+      orders.map((order) => db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id)))
+    );
+    res.json({
+      exportedAt: new Date().toISOString(),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImage: user.profileImage,
+        phone: user.phone,
+        createdAt: user.createdAt,
+      },
+      addresses,
+      paymentMethods: paymentMethods.map((method) => ({
+        id: method.id,
+        cardBrand: method.cardBrand,
+        last4: method.last4,
+        expiryMonth: method.expiryMonth,
+        expiryYear: method.expiryYear,
+        isDefault: method.isDefault,
+        createdAt: method.createdAt,
+      })),
+      orders: orders.map((order, index) => ({ ...order, items: orderItems[index] })),
+    });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Failed to export account data" });
+  }
+});
+
+router.delete("/privacy/delete", requireAuth as any, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user as any;
+    const anonymizedEmail = `deleted-${user.id}-${Date.now()}@fabshop.local`;
+    await db.delete(addressesTable).where(eq(addressesTable.userId, user.id));
+    await db.delete(savedPaymentMethodsTable).where(eq(savedPaymentMethodsTable.userId, user.id));
+    await db.update(ordersTable).set({
+      customerName: "Deleted customer",
+      customerEmail: anonymizedEmail,
+      shippingAddress: "Deleted under GDPR request",
+    }).where(eq(ordersTable.userId, user.id));
+    await db.update(usersTable).set({
+      email: anonymizedEmail,
+      password: null,
+      firstName: "",
+      lastName: "",
+      profileImage: null,
+      phone: null,
+      googleId: null,
+      googleEmail: null,
+      deletedAt: new Date(),
+    }).where(eq(usersTable.id, user.id));
+    req.logout(() => {
+      req.session?.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.json({ success: true });
+      });
+    });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Failed to delete account data" });
   }
 });
 
@@ -177,9 +245,16 @@ router.post("/logout", (req: Request, res: Response, next: Function) => {
 
 // Check authentication status
 router.get("/status", (req: Request, res: Response) => {
+  const user = req.user as any;
   res.json({
     authenticated: !!req.user,
-    user: req.user || null,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profileImage: user.profileImage,
+    } : null,
   });
 });
 

@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGetInventory, getGetInventoryQueryKey, useAdjustStock } from "@workspace/api-client-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -16,19 +20,46 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { Package, Search, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Package, Search, TrendingUp, TrendingDown, Plus, Star, Percent } from "lucide-react";
+
+const emptyProductForm = {
+  name: "",
+  description: "",
+  price: "",
+  sku: "",
+  stockQty: "",
+  lowStockThreshold: "10",
+  imageUrl: "",
+  categoryId: "",
+  specs: "",
+  featured: false,
+};
 
 export function Inventory() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [adjustItem, setAdjustItem] = useState<{ id: number; name: string; stockQty: number } | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [saleItem, setSaleItem] = useState<{ id: number; name: string; price: number } | null>(null);
+  const [salePrice, setSalePrice] = useState("");
+  const [productForm, setProductForm] = useState(emptyProductForm);
   const [delta, setDelta] = useState("");
   const [reason, setReason] = useState("");
+  const [savingProduct, setSavingProduct] = useState(false);
 
   const { data: inventory, isLoading } = useGetInventory({
     query: { queryKey: getGetInventoryQueryKey() }
   });
+
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/categories", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => Array.isArray(data) && setCategories(data))
+      .catch(() => undefined);
+  }, []);
 
   const adjustStock = useAdjustStock({
     mutation: {
@@ -60,6 +91,69 @@ export function Inventory() {
     adjustStock.mutate({ id: adjustItem.id, data: { delta: d, reason: reason || undefined } });
   };
 
+  const updateProduct = async (id: number, data: Record<string, unknown>, successMessage: string) => {
+    const response = await fetch(`/api/admin/products/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Update failed");
+    queryClient.invalidateQueries({ queryKey: getGetInventoryQueryKey() });
+    toast({ title: successMessage });
+  };
+
+  const handleToggleFeatured = async (id: number, featured: boolean) => {
+    try {
+      await updateProduct(id, { featured }, featured ? "Product marked as featured" : "Product removed from featured");
+    } catch {
+      toast({ title: "Error", description: "Failed to update featured item", variant: "destructive" });
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    setSavingProduct(true);
+    try {
+      const response = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...productForm,
+          price: Number(productForm.price),
+          stockQty: Number(productForm.stockQty || 0),
+          lowStockThreshold: Number(productForm.lowStockThreshold || 10),
+          categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
+        }),
+      });
+      if (!response.ok) throw new Error("Create failed");
+      queryClient.invalidateQueries({ queryKey: getGetInventoryQueryKey() });
+      setCreateOpen(false);
+      setProductForm(emptyProductForm);
+      toast({ title: "Product created", description: "The new item is now in your catalogue" });
+    } catch {
+      toast({ title: "Error", description: "Failed to create product", variant: "destructive" });
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
+  const handleApplySale = async () => {
+    if (!saleItem) return;
+    const price = Number(salePrice);
+    if (!price || price <= 0) {
+      toast({ title: "Invalid sale price", description: "Enter a sale price greater than zero", variant: "destructive" });
+      return;
+    }
+    try {
+      await updateProduct(saleItem.id, { price }, "Sale price applied");
+      setSaleItem(null);
+      setSalePrice("");
+    } catch {
+      toast({ title: "Error", description: "Failed to apply sale price", variant: "destructive" });
+    }
+  };
+
   const getStockBadge = (stockQty: number, threshold: number) => {
     if (stockQty === 0) return <Badge variant="destructive">Out of Stock</Badge>;
     if (stockQty <= threshold) return <Badge variant="destructive" className="bg-orange-500">{stockQty} — Low</Badge>;
@@ -71,9 +165,15 @@ export function Inventory() {
       <div className="space-y-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Package className="w-4 h-4" />
-            {inventory ? `${inventory.length} products` : "Loading..."}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Package className="w-4 h-4" />
+              {inventory ? `${inventory.length} products` : "Loading..."}
+            </div>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              New item
+            </Button>
           </div>
         </div>
 
@@ -126,6 +226,25 @@ export function Inventory() {
                         <div className="text-xs text-muted-foreground">Threshold: {item.lowStockThreshold}</div>
                       </div>
                       {getStockBadge(item.stockQty, item.lowStockThreshold)}
+                      <Button
+                        size="sm"
+                        variant={item.featured ? "default" : "outline"}
+                        onClick={() => handleToggleFeatured(item.id, !item.featured)}
+                      >
+                        <Star className="w-4 h-4 mr-1" />
+                        {item.featured ? "Featured" : "Feature"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSaleItem({ id: item.id, name: item.name, price: item.price });
+                          setSalePrice(String(item.price));
+                        }}
+                      >
+                        <Percent className="w-4 h-4 mr-1" />
+                        Sale
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -210,6 +329,100 @@ export function Inventory() {
             <Button onClick={handleAdjust} disabled={adjustStock.isPending || !delta}>
               {adjustStock.isPending ? "Saving..." : "Update Stock"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create new item</DialogTitle>
+            <DialogDescription>Add a product to the storefront catalogue.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-name">Name</Label>
+                <Input id="new-name" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-sku">SKU</Label>
+                <Input id="new-sku" value={productForm.sku} onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-description">Description</Label>
+              <Textarea id="new-description" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-price">Price</Label>
+                <Input id="new-price" type="number" step="0.01" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-stock">Stock</Label>
+                <Input id="new-stock" type="number" value={productForm.stockQty} onChange={(e) => setProductForm({ ...productForm, stockQty: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-threshold">Low stock threshold</Label>
+                <Input id="new-threshold" type="number" value={productForm.lowStockThreshold} onChange={(e) => setProductForm({ ...productForm, lowStockThreshold: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={productForm.categoryId} onValueChange={(value) => setProductForm({ ...productForm, categoryId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-image">Image URL</Label>
+                <Input id="new-image" value={productForm.imageUrl} onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-specs">Specs</Label>
+              <Textarea id="new-specs" placeholder='{"Material":"Steel","Size":"M10"}' value={productForm.specs} onChange={(e) => setProductForm({ ...productForm, specs: e.target.value })} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="new-featured" checked={productForm.featured} onCheckedChange={(checked) => setProductForm({ ...productForm, featured: checked === true })} />
+              <Label htmlFor="new-featured">Mark as featured</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateProduct} disabled={savingProduct}>
+              {savingProduct ? "Creating..." : "Create item"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!saleItem} onOpenChange={(open) => !open && setSaleItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sale price — {saleItem?.name}</DialogTitle>
+            <DialogDescription>Set the current selling price for this item.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="text-sm text-muted-foreground">
+              Current price: <span className="font-bold text-foreground">${saleItem?.price.toFixed(2)}</span>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sale-price">Sale price</Label>
+              <Input id="sale-price" type="number" step="0.01" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaleItem(null)}>Cancel</Button>
+            <Button onClick={handleApplySale}>Apply sale</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

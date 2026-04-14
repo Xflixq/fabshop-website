@@ -3,7 +3,10 @@ import {
   useGetCart, 
   useUpdateCartItem, 
   useRemoveCartItem,
-  getGetCartQueryKey
+  useListProducts,
+  useAddToCart,
+  getGetCartQueryKey,
+  getListProductsQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
@@ -11,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSessionId, formatCurrency } from "@/lib/session";
-import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from "lucide-react";
+import { ShoppingCart, Trash2, Minus, Plus, ArrowRight, Zap } from "lucide-react";
 
 export default function Cart() {
   const sessionId = getSessionId();
@@ -23,8 +26,14 @@ export default function Cart() {
     { query: { enabled: !!sessionId, queryKey: getGetCartQueryKey({ sessionId }) } }
   );
 
+  const { data: quickAddProducts } = useListProducts(
+    { featured: true, inStock: true },
+    { query: { queryKey: getListProductsQueryKey({ featured: true, inStock: true }) } }
+  );
+
   const updateItem = useUpdateCartItem();
   const removeItem = useRemoveCartItem();
+  const addToCart = useAddToCart();
 
   const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -42,6 +51,17 @@ export default function Cart() {
   const handleRemove = (itemId: number) => {
     removeItem.mutate(
       { id: itemId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetCartQueryKey({ sessionId }) });
+        }
+      }
+    );
+  };
+
+  const handleQuickAdd = (productId: number) => {
+    addToCart.mutate(
+      { data: { sessionId, productId, quantity: 1 } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey({ sessionId }) });
@@ -164,6 +184,37 @@ export default function Cart() {
                   </div>
                 ))}
               </div>
+
+              {quickAddProducts && quickAddProducts.length > 0 && (
+                <div className="mt-10 border-2 rounded-lg p-5 bg-muted/20">
+                  <h2 className="font-black uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" /> Quick add before checkout
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {quickAddProducts
+                      .filter((product) => !cart.items.some((item) => item.productId === product.id))
+                      .slice(0, 4)
+                      .map((product) => (
+                        <div key={product.id} className="flex items-center gap-3 rounded-md border bg-card p-3">
+                          <div className="h-12 w-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                            {product.imageUrl ? (
+                              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain" />
+                            ) : (
+                              <Zap className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-sm truncate">{product.name}</div>
+                            <div className="font-mono text-xs text-muted-foreground">{formatCurrency(product.price)}</div>
+                          </div>
+                          <Button size="sm" variant="outline" onClick={() => handleQuickAdd(product.id)} disabled={addToCart.isPending}>
+                            Add
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Order Summary */}

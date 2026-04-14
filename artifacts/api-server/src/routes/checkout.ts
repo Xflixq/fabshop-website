@@ -1,6 +1,6 @@
 import { Router } from "express";
 import Stripe from "stripe";
-import { db, cartItemsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
+import { db, cartItemsTable, ordersTable, orderItemsTable, productsTable, addressesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
@@ -28,9 +28,9 @@ function getBaseUrl(req: any): string {
 
 router.post("/checkout/create-session", async (req, res) => {
   try {
-    const { sessionId, customerName, customerEmail, shippingAddress } = req.body ?? {};
+    const { sessionId, customerName, customerEmail, shippingAddress, address, shippingMethod, shippingLabel, shippingCost = 0, vatIncluded = 0 } = req.body ?? {};
 
-    if (!sessionId || !customerName || !customerEmail || !shippingAddress) {
+    if (!sessionId || !customerName || !customerEmail || !shippingAddress || !shippingMethod) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -55,7 +55,7 @@ router.post("/checkout/create-session", async (req, res) => {
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = cartRows.map((item) => ({
       price_data: {
-        currency: "usd",
+        currency: "gbp",
         product_data: {
           name: item.productName,
           ...(item.productImageUrl ? { images: [item.productImageUrl] } : {}),
@@ -64,6 +64,43 @@ router.post("/checkout/create-session", async (req, res) => {
       },
       quantity: item.quantity,
     }));
+
+    const shippingAmount = Number(shippingCost);
+    if (shippingAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "gbp",
+          product_data: {
+            name: shippingLabel || "Tracked delivery",
+          },
+          unit_amount: Math.round(shippingAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
+    const user = req.user as any;
+    if (user?.id && address?.street && address?.city && address?.zipCode) {
+      const existingAddresses = await db.select().from(addressesTable).where(eq(addressesTable.userId, user.id));
+      const alreadySaved = existingAddresses.some((saved) =>
+        saved.street === address.street &&
+        saved.city === address.city &&
+        saved.zipCode === address.zipCode
+      );
+      if (!alreadySaved) {
+        await db.insert(addressesTable).values({
+          userId: user.id,
+          type: "shipping",
+          fullName: address.fullName || customerName,
+          street: address.street,
+          city: address.city,
+          state: address.state || "",
+          zipCode: address.zipCode,
+          country: address.country || "United Kingdom",
+          isDefault: existingAddresses.length === 0,
+        });
+      }
+    }
 
     const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
@@ -77,6 +114,11 @@ router.post("/checkout/create-session", async (req, res) => {
         customerName,
         customerEmail,
         shippingAddress,
+        shippingMethod,
+        shippingLabel: shippingLabel || "",
+        shippingCost: String(shippingAmount),
+        vatIncluded: String(vatIncluded),
+        userId: user?.id ? String(user.id) : "",
       },
     });
 
@@ -115,6 +157,7 @@ router.post("/checkout/confirm", async (req, res) => {
     const customerName = session.metadata?.customerName ?? "Customer";
     const customerEmail = session.metadata?.customerEmail ?? session.customer_email ?? "";
     const shippingAddress = session.metadata?.shippingAddress ?? "";
+    const userId = session.metadata?.userId ? Number(session.metadata.userId) : undefined;
     const total = ((session.amount_total ?? 0) / 100).toFixed(2);
 
     const cartRows = await db
@@ -136,6 +179,7 @@ router.post("/checkout/confirm", async (req, res) => {
       customerName,
       customerEmail,
       shippingAddress,
+      ...(userId ? { userId } : {}),
     });
 
     const orderId = Number((insertResult[0] as any).insertId);

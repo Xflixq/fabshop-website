@@ -19,6 +19,7 @@ import AuthSuccess from "@/pages/auth-success";
 import SettingsPage from "@/pages/settings";
 import FeaturedPage from "@/pages/featured";
 import SupportPage from "@/pages/support";
+import CompliancePage from "@/pages/compliance";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,11 @@ function AppRoutes() {
         <Route path="/settings" component={SettingsPage} />
         <Route path="/featured" component={FeaturedPage} />
         <Route path="/support" component={SupportPage} />
+        <Route path="/privacy" component={CompliancePage} />
+        <Route path="/terms" component={CompliancePage} />
+        <Route path="/cookies" component={CompliancePage} />
+        <Route path="/shipping" component={CompliancePage} />
+        <Route path="/returns" component={CompliancePage} />
         <Route path="/shop" component={Shop} />
         <Route path="/shop/:id" component={ProductDetail} />
         <Route path="/cart" component={Cart} />

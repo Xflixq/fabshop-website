@@ -89,6 +89,113 @@ router.get("/admin/inventory", async (req, res) => {
   }
 });
 
+router.get("/admin/categories", async (req, res) => {
+  try {
+    const rows = await db.select().from(categoriesTable);
+    res.json(rows);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/products", async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const slug = String(body.slug || body.name || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    if (!body.name || !body.description || !body.sku || !slug) {
+      return res.status(400).json({ error: "Name, description and SKU are required" });
+    }
+
+    const result = await db.insert(productsTable).values({
+      name: String(body.name),
+      slug,
+      description: String(body.description),
+      price: Number(body.price || 0),
+      sku: String(body.sku),
+      stockQty: Number(body.stockQty || 0),
+      lowStockThreshold: Number(body.lowStockThreshold || 10),
+      imageUrl: body.imageUrl ? String(body.imageUrl) : null,
+      featured: Boolean(body.featured),
+      categoryId: body.categoryId ? Number(body.categoryId) : null,
+      specs: body.specs ? String(body.specs) : null,
+    });
+    const insertId = Number((result[0] as any).insertId);
+    const [created] = await db
+      .select({
+        id: productsTable.id,
+        name: productsTable.name,
+        slug: productsTable.slug,
+        description: productsTable.description,
+        price: productsTable.price,
+        sku: productsTable.sku,
+        stockQty: productsTable.stockQty,
+        lowStockThreshold: productsTable.lowStockThreshold,
+        imageUrl: productsTable.imageUrl,
+        featured: productsTable.featured,
+        categoryId: productsTable.categoryId,
+        categoryName: categoriesTable.name,
+        specs: productsTable.specs,
+      })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
+      .where(eq(productsTable.id, insertId));
+    res.status(201).json(mapInventoryItem(created));
+  } catch (err) {
+    req.log.error(err);
+    res.status(400).json({ error: "Invalid product" });
+  }
+});
+
+router.patch("/admin/products/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const body = req.body ?? {};
+    const updates: any = {};
+    if (body.name !== undefined) updates.name = String(body.name);
+    if (body.description !== undefined) updates.description = String(body.description);
+    if (body.price !== undefined) updates.price = Number(body.price);
+    if (body.sku !== undefined) updates.sku = String(body.sku);
+    if (body.stockQty !== undefined) updates.stockQty = Number(body.stockQty);
+    if (body.lowStockThreshold !== undefined) updates.lowStockThreshold = Number(body.lowStockThreshold);
+    if (body.imageUrl !== undefined) updates.imageUrl = body.imageUrl ? String(body.imageUrl) : null;
+    if (body.featured !== undefined) updates.featured = Boolean(body.featured);
+    if (body.categoryId !== undefined) updates.categoryId = body.categoryId ? Number(body.categoryId) : null;
+    if (body.specs !== undefined) updates.specs = body.specs ? String(body.specs) : null;
+
+    await db.update(productsTable).set(updates).where(eq(productsTable.id, id));
+    const [updated] = await db
+      .select({
+        id: productsTable.id,
+        name: productsTable.name,
+        slug: productsTable.slug,
+        description: productsTable.description,
+        price: productsTable.price,
+        sku: productsTable.sku,
+        stockQty: productsTable.stockQty,
+        lowStockThreshold: productsTable.lowStockThreshold,
+        imageUrl: productsTable.imageUrl,
+        featured: productsTable.featured,
+        categoryId: productsTable.categoryId,
+        categoryName: categoriesTable.name,
+        specs: productsTable.specs,
+      })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
+      .where(eq(productsTable.id, id));
+    if (!updated) return res.status(404).json({ error: "Product not found" });
+    res.json(mapInventoryItem(updated));
+  } catch (err) {
+    req.log.error(err);
+    res.status(400).json({ error: "Invalid update" });
+  }
+});
+
 router.post("/admin/inventory/:id/adjust", async (req, res) => {
   try {
     const { id } = AdjustStockParams.parse({ id: Number(req.params.id) });

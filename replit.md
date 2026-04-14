@@ -15,6 +15,7 @@ FabShop — a full-stack e-commerce platform for welding supplies. pnpm workspac
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Payments**: Stripe Checkout
 
 ## Services
 
@@ -30,7 +31,7 @@ FabShop — a full-stack e-commerce platform for welding supplies. pnpm workspac
 - **Database**: FabShop
 - **User**: website
 - **Password**: set via MYSQL_PASSWORD env var
-- Schema: categories, products, cart_items, orders, order_items
+- Schema: categories, products, cart_items, orders, order_items, users, addresses, saved_payment_methods
 - Seeded with 6 categories and 18+ products
 
 ## Key Commands
@@ -49,12 +50,24 @@ All workflows require explicit env vars:
 - Storefront: `PORT=22689 BASE_PATH=/ pnpm --filter @workspace/weld-supply-store run dev`
 - Admin: `PORT=20227 BASE_PATH=/admin/ pnpm --filter @workspace/fabshop-admin run dev`
 
+## Recent Changes
+
+- Checkout now supports saved addresses, new address entry, Royal Mail and DPD tracked delivery choices, free shipping over £50, VAT-inclusive receipt totals, and Stripe Checkout redirection with shipping costs included.
+- Cart page includes quick-add featured products beneath basket items and a corrected cart count badge in the navbar.
+- Product detail specifications render as a normal dropdown table instead of raw JSON text.
+- Storefront now includes compliance/legal pages: Privacy & GDPR, Terms, Cookies, Shipping, and Returns, linked in the footer page list.
+- Customer settings include GDPR data export and account deletion controls.
+- Password registration uses bcrypt hashing with cost 12; legacy plaintext password values are upgraded to bcrypt on successful login.
+- Admin inventory includes creating new items, toggling featured products, and applying sale prices by updating the product price.
+
 ## Important Notes
 
 - MySQL does not support `CAST(x AS INT)` — use `CAST(x AS UNSIGNED)` or `CAST(x AS SIGNED)`
 - MySQL does not support `.returning()` in Drizzle — use insertId then select pattern
 - Vite dev servers proxy `/api/*` and `/__clerk/*` to `localhost:8080`
 - Both frontends need `BASE_PATH` and `PORT` env vars to start
+- Prices are displayed in GBP on the storefront and checkout.
+- Stripe requires `STRIPE_TEST_API_KEY` for checkout session creation.
 
 ## Architecture
 

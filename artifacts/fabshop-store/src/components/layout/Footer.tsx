@@ -59,9 +59,29 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground font-mono">
+        <div className="border-t mt-12 pt-8">
+          <div className="mb-6">
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-3 text-foreground">Site Pages</h3>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link>
+              <Link href="/shop" className="text-muted-foreground hover:text-foreground transition-colors">Catalog</Link>
+              <Link href="/featured" className="text-muted-foreground hover:text-foreground transition-colors">Featured</Link>
+              <Link href="/cart" className="text-muted-foreground hover:text-foreground transition-colors">Cart</Link>
+              <Link href="/checkout" className="text-muted-foreground hover:text-foreground transition-colors">Checkout</Link>
+              <Link href="/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link>
+              <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</Link>
+              <Link href="/support" className="text-muted-foreground hover:text-foreground transition-colors">Support</Link>
+              <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy & GDPR</Link>
+              <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
+              <Link href="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">Cookies</Link>
+              <Link href="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping</Link>
+              <Link href="/returns" className="text-muted-foreground hover:text-foreground transition-colors">Returns</Link>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground font-mono">
           <p>&copy; {new Date().getFullYear()} FabShop. All rights reserved.</p>
-          <p>Built for the trade.</p>
+            <p>Built for the trade.</p>
+          </div>
         </div>
       </div>
     </footer>

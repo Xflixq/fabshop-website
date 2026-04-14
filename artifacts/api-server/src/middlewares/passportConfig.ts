@@ -76,15 +76,23 @@ passport.use(
           return done(null, false, { message: "Incorrect email or password" });
         }
 
+        if (user.deletedAt) {
+          return done(null, false, { message: "Incorrect email or password" });
+        }
+
         // Check if user has a password (email/password signup)
         if (!user.password) {
           return done(null, false, { message: "This account uses OAuth login. Please use Google Sign In." });
         }
 
-        // Verify password
-        const isPasswordValid = await bcryptjs.compare(password, user.password);
+        const isBcryptHash = user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$");
+        const isPasswordValid = isBcryptHash ? await bcryptjs.compare(password, user.password) : password === user.password;
         if (!isPasswordValid) {
           return done(null, false, { message: "Incorrect email or password" });
+        }
+
+        if (!isBcryptHash) {
+          await db.update(usersTable).set({ password: await bcryptjs.hash(password, 12) }).where(eq(usersTable.id, user.id));
         }
 
         return done(null, user);

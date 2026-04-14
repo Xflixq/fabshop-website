@@ -283,7 +283,7 @@ export function Navbar() {
               {itemCount > 0 && (
                 <Badge
                   variant="default"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] rounded-full border-2 border-background font-mono"
+                  className="absolute -top-2 -right-2 min-h-6 min-w-6 px-1.5 flex items-center justify-center text-[11px] rounded-full border-2 border-background font-mono leading-none"
                 >
                   {itemCount}
                 </Badge>

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, getSessionId } from "@/lib/session";
 import { 
@@ -23,6 +24,28 @@ import {
   Truck, 
   RotateCcw 
 } from "lucide-react";
+
+function parseSpecs(specs: string) {
+  try {
+    const parsed = JSON.parse(specs);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return Object.entries(parsed).map(([key, value]) => ({
+        label: key.replace(/[_-]/g, " "),
+        value: Array.isArray(value) ? value.join(", ") : String(value),
+      }));
+    }
+  } catch {
+    return specs
+      .split(/\n|,/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [label, ...rest] = line.split(":");
+        return { label: rest.length ? label.trim() : "Specification", value: rest.length ? rest.join(":").trim() : line };
+      });
+  }
+  return [];
+}
 
 export default function ProductDetail() {
   const params = useParams();
@@ -243,10 +266,23 @@ export default function ProductDetail() {
               {/* Specs */}
               {product.specs && (
                 <div className="mb-8">
-                  <h3 className="font-bold uppercase tracking-wider mb-4 border-b pb-2">Specifications</h3>
-                  <div className="font-mono text-sm text-muted-foreground whitespace-pre-wrap bg-muted/30 p-4 rounded-md">
-                    {product.specs}
-                  </div>
+                  <Accordion type="single" collapsible defaultValue="specs" className="border rounded-lg bg-muted/20 px-4">
+                    <AccordionItem value="specs" className="border-0">
+                      <AccordionTrigger className="font-bold uppercase tracking-wider hover:no-underline">
+                        Specifications
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="divide-y rounded-md border bg-background">
+                          {parseSpecs(product.specs).map((spec, index) => (
+                            <div key={`${spec.label}-${index}`} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3 text-sm">
+                              <div className="font-bold capitalize">{spec.label}</div>
+                              <div className="sm:col-span-2 text-muted-foreground font-mono">{spec.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
               )}
 
