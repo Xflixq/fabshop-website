@@ -38,7 +38,7 @@ export function Dashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${(dashboard.totalRevenue / 100).toFixed(2)}</div>
+                <div className="text-2xl font-bold">£{Number(dashboard.totalRevenue).toFixed(2)}</div>
               </CardContent>
             </Card>
             <Card>
@@ -93,7 +93,7 @@ export function Dashboard() {
                         <div className="text-sm text-muted-foreground">{order.customerName}</div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="font-medium">${(order.total / 100).toFixed(2)}</div>
+                        <div className="font-medium">£{Number(order.total).toFixed(2)}</div>
                         <Badge variant={order.status === 'delivered' ? 'outline' : order.status === 'pending' ? 'default' : 'secondary'}>
                           {order.status}
                         </Badge>
