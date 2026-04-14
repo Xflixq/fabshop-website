@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGetInventory, getGetInventoryQueryKey, useAdjustStock } from "@workspace/api-client-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { Package, Search, TrendingUp, TrendingDown, Plus, Star, Percent } from "lucide-react";
+import { Package, Search, TrendingUp, TrendingDown, Plus, Star, Percent, Upload } from "lucide-react";
 
 const emptyProductForm = {
   name: "",
@@ -31,7 +31,7 @@ const emptyProductForm = {
   lowStockThreshold: "10",
   imageUrl: "",
   categoryId: "",
-  specs: "",
+  specs: [] as Array<{ header: string; comment: string }>,
   weightKg: "1",
   featured: false,
 };
@@ -48,10 +48,13 @@ export function Inventory() {
   const [delta, setDelta] = useState("");
   const [reason, setReason] = useState("");
   const [savingProduct, setSavingProduct] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const { data: inventory, isLoading } = useGetInventory({
     query: { queryKey: getGetInventoryQueryKey() }
   });
+  const specRows = useMemo(() => productForm.specs, [productForm.specs]);
+
 
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
 
@@ -115,6 +118,7 @@ export function Inventory() {
   const handleCreateProduct = async () => {
     setSavingProduct(true);
     try {
+      const imageUrl = imageFile ? URL.createObjectURL(imageFile) : productForm.imageUrl || "";
       const response = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,12 +130,15 @@ export function Inventory() {
           lowStockThreshold: Number(productForm.lowStockThreshold || 10),
           categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
           weightKg: Number(productForm.weightKg || 1),
+          imageUrl: imageUrl || null,
+          specs: JSON.stringify(productForm.specs.filter((row) => row.header || row.comment)),
         }),
       });
       if (!response.ok) throw new Error("Create failed");
       queryClient.invalidateQueries({ queryKey: getGetInventoryQueryKey() });
       setCreateOpen(false);
       setProductForm(emptyProductForm);
+      setImageFile(null);
       toast({ title: "Product created", description: "The new item is now in your catalogue" });
     } catch {
       toast({ title: "Error", description: "Failed to create product", variant: "destructive" });
@@ -160,6 +167,12 @@ export function Inventory() {
     if (stockQty === 0) return <Badge variant="destructive">Out of Stock</Badge>;
     if (stockQty <= threshold) return <Badge variant="destructive" className="bg-orange-500">{stockQty} — Low</Badge>;
     return <Badge variant="outline" className="text-green-600 border-green-300">{stockQty} In Stock</Badge>;
+  };
+
+  const updateSpecCell = (index: number, key: "header" | "comment", value: string) => {
+    const next = [...productForm.specs];
+    next[index] = { ...next[index], [key]: value };
+    setProductForm({ ...productForm, specs: next });
   };
 
   return (
@@ -224,8 +237,7 @@ export function Inventory() {
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
-                        <div className="text-sm font-medium">${item.price.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">Weight: {Number(item.weightKg ?? 1).toFixed(2)} kg</div>
+                        <div className="text-sm font-medium">${Number(item.price).toFixed(2)}</div>
                         <div className="text-xs text-muted-foreground">Threshold: {item.lowStockThreshold}</div>
                       </div>
                       {getStockBadge(item.stockQty, item.lowStockThreshold)}
@@ -390,13 +402,73 @@ export function Inventory() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="new-image">Image URL</Label>
-                <Input id="new-image" value={productForm.imageUrl} onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })} />
+                <Label htmlFor="new-image">Product image</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="new-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                  />
+                  <Upload className="w-4 h-4 text-muted-foreground shrink-0" />
+                </div>
+                <p className="text-xs text-muted-foreground">The file will be uploaded from your browser and attached to the new product.</p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-specs">Specs</Label>
-              <Textarea id="new-specs" placeholder='{"Material":"Steel","Size":"M10"}' value={productForm.specs} onChange={(e) => setProductForm({ ...productForm, specs: e.target.value })} />
+              <div className="flex items-center justify-between">
+                <Label>Specs table</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProductForm({ ...productForm, specs: [...productForm.specs, { header: "", comment: "" }] })}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add row
+                </Button>
+              </div>
+              <div className="overflow-hidden rounded-md border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40">
+                    <tr>
+                      <th className="border-b px-3 py-2 text-left font-medium">Header</th>
+                      <th className="border-b px-3 py-2 text-left font-medium">Comment</th>
+                      <th className="border-b px-3 py-2 text-right font-medium w-24">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {specRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-3 py-4 text-center text-muted-foreground">
+                          Add headers and comments for your product specs.
+                        </td>
+                      </tr>
+                    ) : (
+                      specRows.map((row, index) => (
+                        <tr key={index} className="align-top">
+                          <td className="border-b px-3 py-2">
+                            <Input value={row.header} onChange={(e) => updateSpecCell(index, "header", e.target.value)} placeholder="Material" />
+                          </td>
+                          <td className="border-b px-3 py-2">
+                            <Textarea value={row.comment} onChange={(e) => updateSpecCell(index, "comment", e.target.value)} placeholder="Steel body" className="min-h-10" />
+                          </td>
+                          <td className="border-b px-3 py-2 text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setProductForm({ ...productForm, specs: productForm.specs.filter((_, i) => i !== index) })}
+                            >
+                              Remove
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox id="new-featured" checked={productForm.featured} onCheckedChange={(checked) => setProductForm({ ...productForm, featured: checked === true })} />
