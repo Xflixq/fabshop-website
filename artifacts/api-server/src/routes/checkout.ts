@@ -5,9 +5,17 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_TEST_API_KEY ?? "", {
-  apiVersion: "2025-01-27.acacia",
-});
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_TEST_API_KEY;
+    if (!key) {
+      throw new Error("STRIPE_TEST_API_KEY environment variable is not set");
+    }
+    _stripe = new Stripe(key, { apiVersion: "2025-01-27.acacia" });
+  }
+  return _stripe;
+}
 
 function getBaseUrl(req: any): string {
   if (process.env.REPLIT_DEV_DOMAIN) {
@@ -57,7 +65,7 @@ router.post("/checkout/create-session", async (req, res) => {
       quantity: item.quantity,
     }));
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
@@ -87,7 +95,7 @@ router.post("/checkout/confirm", async (req, res) => {
       return res.status(400).json({ error: "Missing stripe session ID" });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
+    const session = await getStripe().checkout.sessions.retrieve(stripeSessionId);
 
     if (session.payment_status !== "paid") {
       return res.status(402).json({ error: "Payment not completed" });
