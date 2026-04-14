@@ -65,6 +65,7 @@ export default function Cart() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey({ sessionId }) });
+          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey({ featured: true, inStock: true }) });
         }
       }
     );

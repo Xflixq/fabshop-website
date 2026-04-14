@@ -278,7 +278,7 @@ export function Navbar() {
           <AuthSection />
 
           <Link href="/cart" className="relative group">
-            <Button variant="ghost" size="icon" className="relative hover:shadow-none active:shadow-none">
+            <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-shadow hover:shadow-none active:shadow-none">
               <ShoppingCart className="h-5 w-5 shrink-0" />
               {itemCount > 0 && (
                 <Badge
@@ -289,7 +289,7 @@ export function Navbar() {
                 </Badge>
               )}
               <span className="sr-only">Cart</span>
-            </Button>
+            </div>
           </Link>
         </div>
       </div>

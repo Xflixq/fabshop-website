@@ -48,19 +48,19 @@ export default function Shop() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateFilters({ search: searchTerm });
+    updateFilters({ search: searchTerm.trim() });
   };
 
   const { data: products, isLoading: isLoadingProducts } = useListProducts(
     { 
       categoryId: paramCategoryId, 
-      search: paramSearch, 
+      search: paramSearch?.trim() || undefined, 
       inStock: paramInStock ? true : undefined,
       featured: paramFeatured ? true : undefined
     },
     { query: { queryKey: getListProductsQueryKey({ 
       categoryId: paramCategoryId, 
-      search: paramSearch, 
+      search: paramSearch?.trim() || undefined, 
       inStock: paramInStock ? true : undefined,
       featured: paramFeatured ? true : undefined
     }) } }
@@ -83,7 +83,7 @@ export default function Shop() {
         <h3 className="font-bold uppercase tracking-wider mb-4 text-sm border-b pb-2">Search</h3>
         <form onSubmit={handleSearch} className="flex gap-2">
           <Input 
-            placeholder="Part name, SKU..." 
+            placeholder="Part name or SKU..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="font-mono"
