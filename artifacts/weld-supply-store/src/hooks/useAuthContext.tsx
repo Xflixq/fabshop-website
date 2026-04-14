@@ -13,6 +13,8 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => void;
+  loginWithEmail: (email: string, password: string) => Promise<{ error?: string }>;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -45,8 +47,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = () => {
-    // Redirect to Google OAuth
     window.location.href = "/api/auth/google";
+  };
+
+  const loginWithEmail = async (email: string, password: string): Promise<{ error?: string }> => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { error: data.error || "Login failed" };
+      }
+      setUser(data.user);
+      return {};
+    } catch {
+      return { error: "Network error. Please try again." };
+    }
+  };
+
+  const register = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ): Promise<{ error?: string }> => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password, firstName, lastName }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { error: data.error || "Registration failed" };
+      }
+      setUser(data.user);
+      return {};
+    } catch {
+      return { error: "Network error. Please try again." };
+    }
   };
 
   const logout = async () => {
@@ -57,7 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (response.ok) {
         setUser(null);
-        // Redirect to home
         window.location.href = "/";
       }
     } catch (error) {
@@ -72,6 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
+        loginWithEmail,
+        register,
         logout,
         refresh: refreshAuth,
       }}
