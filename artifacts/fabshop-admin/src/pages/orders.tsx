@@ -243,8 +243,8 @@ export function Orders() {
                 {testOrderMutation.isPending ? "Creating..." : "Create Test Order"}
               </Button>
             )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ShoppingCart className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <ShoppingCart className="h-4 w-4 shrink-0" />
               {orders ? `${orders.length} total` : "..."}
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -302,7 +302,7 @@ export function Orders() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-2"
+                          className="h-8 px-2 hover:bg-muted/50 hover:shadow-none active:shadow-none"
                           onClick={() => setLabelOrder(order as unknown as Order)}
                           title="Print shipping label"
                         >
@@ -378,6 +378,7 @@ export function Orders() {
                             <Button
                               variant="outline"
                               size="sm"
+                              className="hover:shadow-none active:shadow-none"
                               onClick={() => setLabelOrder(order as unknown as Order)}
                             >
                               <Printer className="w-3.5 h-3.5 mr-1.5" />
